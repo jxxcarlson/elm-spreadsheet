@@ -63,7 +63,7 @@ getCell row col sheet =
 
 
 opRealColumns_ : Col -> Col -> Col -> Spreadsheet -> Maybe SpreadsheetColumn
-opRealColumns_ i j k sheet =
+opRealColumns_:wq i j k sheet =
     case ( getColumn i sheet, getColumn j sheet, getColumn k sheet ) of
         ( Just col1, Just col2, Just col3 ) ->
             List.map3 applyRealOp col1 col2 col3 |> (Maybe.Extra.values >> Just)
