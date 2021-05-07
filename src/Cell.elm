@@ -71,10 +71,10 @@ render : Cell -> String
 render cell =
     case cell of
         Left (RowOp op i j) ->
-            "row " ++ op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
+            "row " ++ op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
 
         Left (ColOp op i j) ->
-            "col " ++ op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
+            "col " ++ op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
 
         Right (Integer k) ->
             String.fromInt k
@@ -118,9 +118,9 @@ rowOpParser =
         |= string
         -- XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')
         |. Parser.spaces
-        |= Parser.int
+        |= (Parser.int |> Parser.map (\x -> x - 1))
         |. Parser.spaces
-        |= Parser.int
+        |= (Parser.int |> Parser.map (\x -> x - 1))
 
 
 colOpParser : Parser Formula
@@ -130,9 +130,9 @@ colOpParser =
         |. Parser.spaces
         |= string
         |. Parser.spaces
-        |= Parser.int
+        |= (Parser.int |> Parser.map (\x -> x - 1))
         |. Parser.spaces
-        |= Parser.int
+        |= (Parser.int |> Parser.map (\x -> x - 1))
 
 
 valueParser : Parser Value

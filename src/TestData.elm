@@ -17,19 +17,19 @@ textCol1 =
 
 
 testSheetCol2 =
-    [ Right (Real 1.1), Right (Real 1.4), Right (Real 0.9), Left (ColOp "col sum" 0 2) ]
+    [ Right (Real 1.1), Right (Real 1.4), Right (Real 0.9), Left (ColOp "col sum" 1 3) ]
 
 
 textCol2 =
-    [ "1.1", "1.4", "0.9", "col sum 0 2" ]
+    [ "1.1", "1.4", "0.9", "col sum 1 3" ]
 
 
 testSheetCol3 =
-    [ Left (RowOp "*" 0 1), Left (RowOp "*" 0 1), Left (RowOp "*" 0 1), Left (ColOp "col sum" 0 2) ]
+    [ Left (RowOp "*" 1 2), Left (RowOp "*" 1 2), Left (RowOp "*" 1 2), Left (ColOp "col sum" 1 3) ]
 
 
 textCol3 =
-    [ "row * 0 1", "row * 0 1", "row * 0 1", "col sum 0 2" ]
+    [ "row * 1 2", "row * 1 2", "row * 1 2", "col sum 1 3" ]
 
 
 ast =
