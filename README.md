@@ -36,7 +36,7 @@ Spreadsheets can be represented in a variety of ways.
     ]
     ```
 
-3. As a `List Cell`
+3. As a `List (List Cell)`
 
     ```elm
     > parse TestData.text
