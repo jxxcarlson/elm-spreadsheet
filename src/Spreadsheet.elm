@@ -74,6 +74,11 @@ renderColumn cells =
 -- COMPUTE
 
 
+eval : Spreadsheet -> Spreadsheet
+eval sheet =
+    List.foldl (\col sheet_ -> applyRealOp col sheet_) sheet (List.range 0 (width sheet - 1))
+
+
 applyRealOp : Col -> Spreadsheet -> Spreadsheet
 applyRealOp col sheet =
     List.foldl (\row sheet_ -> applyRealOp_ row col sheet_) sheet (List.range 0 (height sheet - 1))
@@ -99,18 +104,15 @@ applyRealOp_ row col sheet =
 
 {-|
 
-    > textSheet
-    [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["*","*","*"]]
-
-    > textSheet |> computeReal 2 0 1
-    [["100","120","140"],["1.1","1.4","0.9"],["110.00000000000001","168","126"]]
+    > [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["5.6","* 0 1","* 0 1"], ["1.0", "1.0", "1.0"], ["+ 2 3", "+ 2 3", "+ 2 3"]] |> evalText
+    [["100","120","140"],["1.1","1.4","0.9"],["5.6","168","126"],["1","1","1"],["6.6","169","127"]]
 
 -}
-computeReal : Col -> TextSpreadsheet -> TextSpreadsheet
-computeReal opCol text =
+evalText : TextSpreadsheet -> TextSpreadsheet
+evalText text =
     text
         |> parse
-        |> applyRealOp opCol
+        |> eval
         |> render
 
 
@@ -149,6 +151,11 @@ getColumn col sheet =
 height : Spreadsheet -> Int
 height sheet =
     List.head sheet |> Maybe.map List.length |> Maybe.withDefault 0
+
+
+width : Spreadsheet -> Int
+width sheet =
+    List.length sheet
 
 
 
