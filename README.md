@@ -64,8 +64,8 @@ Spreadsheets can be represented in a variety of ways.
    
 ## Evaluation
 
-One can evaluate a spreadsheet using the `eval` function.  
-The code below
+The function `eval` carries out the computations specified in the
+formula cells.  Thus the compuations
 
 
 ```elm
