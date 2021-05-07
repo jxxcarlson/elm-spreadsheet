@@ -53,7 +53,7 @@ parse text =
 
 parseColumn : List String -> List Cell
 parseColumn cells =
-    List.map Cell.parse cells |> Maybe.Extra.values
+    List.map Cell.parse cells
 
 
 
@@ -90,7 +90,7 @@ applyRealOp_ row col sheet =
         Nothing ->
             sheet
 
-        Just (Left (ColumnOp opSymbol i j)) ->
+        Just (Left (RowOp opSymbol i j)) ->
             case ( Dict.get opSymbol opRealDict, getCell row i sheet, getCell row j sheet ) of
                 ( Just op, Just (Right (Real x)), Just (Right (Real y)) ) ->
                     putCell row col (Right (Real (op x y))) sheet
@@ -170,39 +170,3 @@ opRealDict =
         , ( "*", (*) )
         , ( "/", (/) )
         ]
-
-
-
--- TEST DATA
-
-
-testSheetCol1 =
-    [ Right (Real 100), Right (Real 120), Right (Real 140) ]
-
-
-textCol1 =
-    [ "100.0", "120.0", "140.0" ]
-
-
-testSheetCol2 =
-    [ Right (Real 1.1), Right (Real 1.4), Right (Real 0.9) ]
-
-
-textCol2 =
-    [ "1.1", "1.4", "0.9" ]
-
-
-testSheetCol3 =
-    [ Left (ColumnOp "*" 0 1), Left (ColumnOp "*" 0 1), Left (ColumnOp "*" 0 1) ]
-
-
-textCol3 =
-    [ "* 0 1", "* 0 1", "* 0 1" ]
-
-
-testSheet =
-    [ testSheetCol1, testSheetCol2, testSheetCol3 ]
-
-
-textSheet =
-    [ textCol1, textCol2, textCol3 ]

@@ -14,7 +14,8 @@ type alias Cell =
 
 
 type Formula
-    = ColumnOp String Int Int
+    = RowOp String Int Int
+    | ColOp String Int Int
 
 
 type Value
@@ -25,21 +26,24 @@ type Value
     | Undefined
 
 
-parse : String -> Maybe Cell
+parse : String -> Cell
 parse input =
     case Parser.run cellParser input of
         Ok cell ->
-            Just cell
+            cell
 
         Err _ ->
-            Nothing
+            Right Undefined
 
 
 render : Cell -> String
 render cell =
     case cell of
-        Left (ColumnOp op i j) ->
-            op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
+        Left (RowOp op i j) ->
+            "row " ++ op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
+
+        Left (ColOp op i j) ->
+            "col " ++ op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
 
         Right (Integer k) ->
             String.fromInt k
@@ -47,8 +51,23 @@ render cell =
         Right (Real x) ->
             String.fromFloat x
 
-        _ ->
-            "undefined"
+        Right Undefined ->
+            ""
+
+        Right (Boolean b) ->
+            stringOfBoolean b
+
+        Right (String s) ->
+            s
+
+
+stringOfBoolean : Bool -> String
+stringOfBoolean b =
+    if b then
+        "True"
+
+    else
+        "False"
 
 
 cellParser : Parser Cell
@@ -56,10 +75,29 @@ cellParser =
     Parser.oneOf [ Parser.backtrackable opParser |> Parser.map Left, valueParser |> Parser.map Right ]
 
 
-opParser : Parser Formula
 opParser =
-    Parser.succeed ColumnOp
-        |= XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')
+    Parser.oneOf [ rowOpParser, colOpParser ]
+
+
+rowOpParser : Parser Formula
+rowOpParser =
+    Parser.succeed RowOp
+        |. Parser.symbol "row"
+        |. Parser.spaces
+        |= string
+        -- XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')
+        |. Parser.spaces
+        |= Parser.int
+        |. Parser.spaces
+        |= Parser.int
+
+
+colOpParser : Parser Formula
+colOpParser =
+    Parser.succeed ColOp
+        |. Parser.symbol "col"
+        |. Parser.spaces
+        |= string
         |. Parser.spaces
         |= Parser.int
         |. Parser.spaces
@@ -69,3 +107,13 @@ opParser =
 valueParser : Parser Value
 valueParser =
     Parser.oneOf [ Parser.backtrackable (U.integer |> Parser.map Integer), U.float |> Parser.map Real ]
+
+
+string : Parser String
+string =
+    XString.withPredicates (\c -> Char.isAlpha c || isSymbol c) Char.isAlpha
+
+
+isSymbol : Char -> Bool
+isSymbol str =
+    List.member str [ '+', '-', '*', '/' ]

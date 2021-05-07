@@ -79,8 +79,8 @@ Here is what the `parse` function yields:
 Computation of new `TextSpreadsheet` is carried out by the function
 
 ```elm
-computeReal : TextSpreadsheet -> TextSpreadsheet
-computeRealtext =
+compute : TextSpreadsheet -> TextSpreadsheet
+compute text =
     text
         |> parse
         |> eval
