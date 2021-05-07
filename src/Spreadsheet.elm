@@ -71,21 +71,41 @@ renderColumn cells =
 
 
 
--- COMPUTE
+-- EVAL
 
 
 eval : Spreadsheet -> Spreadsheet
 eval sheet =
-    List.foldl (\col sheet_ -> applyRealOp col sheet_) sheet (List.range 0 (width sheet - 1))
+    sheet |> evalRowOps |> evalColOps
 
 
-applyRealOp : Col -> Spreadsheet -> Spreadsheet
-applyRealOp col sheet =
-    List.foldl (\row sheet_ -> applyRealOp_ row col sheet_) sheet (List.range 0 (height sheet - 1))
+evalColOps : Spreadsheet -> Spreadsheet
+evalColOps sheet =
+    List.foldl (\row sheet_ -> applyColOp row sheet_) sheet (List.range 0 (height sheet - 1))
 
 
-applyRealOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
-applyRealOp_ row col sheet =
+applyColOp : Row -> Spreadsheet -> Spreadsheet
+applyColOp row sheet =
+    List.foldl (\col sheet_ -> applyColOp_ col col sheet_) sheet (List.range 0 (width sheet - 1))
+
+
+applyColOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
+applyColOp_ row col sheet =
+    sheet
+
+
+evalRowOps : Spreadsheet -> Spreadsheet
+evalRowOps sheet =
+    List.foldl (\col sheet_ -> applyRowOp col sheet_) sheet (List.range 0 (width sheet - 1))
+
+
+applyRowOp : Col -> Spreadsheet -> Spreadsheet
+applyRowOp col sheet =
+    List.foldl (\row sheet_ -> applyRowOp_ row col sheet_) sheet (List.range 0 (height sheet - 1))
+
+
+applyRowOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
+applyRowOp_ row col sheet =
     case getCell row col sheet of
         Nothing ->
             sheet
