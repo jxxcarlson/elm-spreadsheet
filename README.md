@@ -1,22 +1,20 @@
-# elm-spreadsheet
+# Elm-spreadsheet
 
-This is an experimental spreadsheet package. The idea is to
-be able to 
+We present an experimental spreadsheet package.  There is nothing original here,
+but when finished, or at least more fully developed, it should be useful.
 
-#### Example
+Spreadsheets
+can be represented in various ways — as plain text, in CSV
+format, as a `List (List String)`, and as `Spreadsheet = List (List Cell)`.
+The last representation is a kind of AST for spreadsheets 
+for we implement a function
 
-Consider the spreadsheet data given below in pretty-printed form
-and represented internally by `Data.text: List (List String)`:
-
-```
-  100.0             1.1       row * 0 1
-  120.0             1.4       row * 0 1
-  140.0             0.9       row * 0 1
-      -     col sum 0 2     col sum 0 2
+```elm
+eval : Spreadsheet -> Spreadsheet
 ```
 
-The cells of the spreadsheet contain either data or formulas,
-represented by the type 
+which "solves" or "computes" the spreadsheet. The cells of the spreadsheet 
+contain either data or formulas, a fact which is declared by the type
 
 ```elm
 type alias Cell =
@@ -34,7 +32,29 @@ type Value
     | Undefined
 ```
 
-The computation
+### Example
+
+Consider the spreadsheet data given below in pretty-printed form
+and represented internally by `Data.text: List (List String)`:
+
+```
+  100.0             1.1       row * 0 1
+  120.0             1.4       row * 0 1
+  140.0             0.9       row * 0 1
+      -     col sum 0 2     col sum 0 2
+```
+
+
+The AST of this spreadsheet is 
+
+```elm
+> parse Data.text
+[ [Right (Real 100),Right (Real 120),Right (Real 140),Right Undefined]
+, [Right (Real 1.1),Right (Real 1.4),Right (Real 0.9), Left (ColOp "sum" 0 2)]
+, [Left (RowOp "*" 0 1),Left (RowOp "*" 0 1),Left (RowOp "*" 0 1),Left (ColOp "sum" 0 2)]
+]
+```
+and the computation
 
 ```elm
   TestData.text |> parse |> eval |> render |> Pretty.print
@@ -85,102 +105,6 @@ full evaluation.
 Thus it remains to (a) derive dependency graphs from 
 spreadsheets, (b) traverse the graph depth-first, performing the
 indicated computations as each node is visited.
-
-## Log
-
-### 4/6/2021
-
-Below is the endpoint for today's work. In module
-`Spreadsheet` there are two data structures,
-
-```elm
-type alias Spreadsheet =
-    List (List Cell)
-```
-
-and
-```elm
-type alias TextSpreadsheet =
-    List (List String)
-```
-
-where the `Cell` type is defined as in the introduction.
-
-The `Spreadsheet` type is like an AST for `TextSpreadsheet`,
-and indeed we have a function 
-
-```elm
-parse : TextSpreadSheet -> SpreadSheet
-```
-
-with counterpart
-
-```elm
-render : Spreadsheet -> TextSpreadsheet
-```
-
-A typical text spreadsheet will have both columns
-of data and columns of operations on cells, as in 
-this example:
-
-```elm
-    > textSheet
-    [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["* 0 1","* 0 1","* 0 1"]]
-```
-Column 2 says: compute a new column 2 by taking cell-wise projects
-of the contents of columns 0 and 1.
-
-Here is what the `parse` function yields:
-
-```elm
-    > Spreadsheet.parse textSheet
-    [[Right (Real 100),Right (Real 120),Right (Real 140)]
-    ,[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)]
-    ,[Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1)]]
-```
-
-Computation of new `TextSpreadsheet` is carried out by the function
-
-```elm
-compute : TextSpreadsheet -> TextSpreadsheet
-compute text =
-    text
-        |> parse
-        |> eval
-        |> render
-```
-
-The middle function has type
-
-```elm
-eval : Spreadsheet -> Spreadsheet
-```
-
-Its effect is to carry out the computations in column k, first with 
-k = 0, then k = 1, and so on.  For this computational rule to 
-result in complete evaluaton, where all cells contain 
-values instead of formulas, computations in column k should 
-involve columns  i, j for i <  k and j < k.  
-
-
-### 4/7/2021
-
-Introduc the type of formulas mentioned in the introduction:
-
-```elm
-type Formula
-    = RowOp String Col Col
-    | ColOp String Row Row
-```
-
-Then re-work `eval` as follows:
-
-```elm
-eval : Spreadsheet -> Spreadsheet
-eval sheet =
-    sheet |> evalRowOps |> evalColOps
-```
-
 
 
 
