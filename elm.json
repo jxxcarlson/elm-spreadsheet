@@ -3,7 +3,7 @@
     "name": "jxxcarlson/elm-spreadsheet",
     "summary": "Representation of and computation spreadsheets in Elm.",
     "license": "MIT",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "exposed-modules": [
         "Cell",
         "Spreadsheet"
