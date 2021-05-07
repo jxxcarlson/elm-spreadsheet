@@ -1,4 +1,4 @@
-module Spreadsheet exposing (..)
+module Spreadsheet exposing (eval, evalText, parse, render)
 
 import Cell exposing (Cell, Formula(..), Value(..))
 import Dict exposing (Dict)

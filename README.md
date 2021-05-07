@@ -79,18 +79,21 @@ Here is what the `parse` function yields:
 Computation of new `TextSpreadsheet` is carried out by the function
 
 ```elm
-computeReal : Col -> TextSpreadsheet -> TextSpreadsheet
-computeReal opCol text =
+computeReal : TextSpreadsheet -> TextSpreadsheet
+computeRealtext =
     text
         |> parse
-        |> applyRealOp opCol
+        |> eval
         |> render
 ```
 
 The middle function has type
 
 ```elm
-applyRealOp : Col -> Spreadsheet -> Spreadsheet
+eval : Spreadsheet -> Spreadsheet
 ```
 
-Its effect is to carry out each of the computations of the given column.
+Its effect is to carry out the computations in column k, first with 
+k = 0, then k = 1, and so on.  For this computational rule to have
+the desired result, computations in column k should involve columns
+i, j for i <  k and j < k.
