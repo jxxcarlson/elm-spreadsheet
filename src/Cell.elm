@@ -3,7 +3,7 @@ module Cell exposing (Cell, Formula(..), Value(..), parse, render)
 {- (Cell, Formula(..), Value(..)) -}
 
 import Either exposing (Either(..))
-import Parser exposing (Parser)
+import Parser exposing ((|.), (|=), Parser)
 import ParserTools as T
 import UtilityParser as U
 import XString
@@ -14,7 +14,7 @@ type alias Cell =
 
 
 type Formula
-    = OpSymbol String
+    = ColumnOp String Int Int
 
 
 type Value
@@ -38,8 +38,8 @@ parse input =
 render : Cell -> String
 render cell =
     case cell of
-        Left (OpSymbol op) ->
-            op
+        Left (ColumnOp op i j) ->
+            op ++ " " ++ String.fromInt i ++ " " ++ String.fromInt j
 
         Right (Integer k) ->
             String.fromInt k
@@ -53,12 +53,17 @@ render cell =
 
 cellParser : Parser Cell
 cellParser =
-    Parser.oneOf [ Parser.backtrackable opParser |> Parser.map (OpSymbol >> Left), valueParser |> Parser.map Right ]
+    Parser.oneOf [ Parser.backtrackable opParser |> Parser.map Left, valueParser |> Parser.map Right ]
 
 
-opParser : Parser String
+opParser : Parser Formula
 opParser =
-    T.first (XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')) Parser.end
+    Parser.succeed ColumnOp
+        |= XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')
+        |. Parser.spaces
+        |= Parser.int
+        |. Parser.spaces
+        |= Parser.int
 
 
 valueParser : Parser Value

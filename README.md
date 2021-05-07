@@ -27,9 +27,12 @@ where the `Cell` type is defined as
 type alias Cell =
     Either Formula Value
 
-
+{-|
+    Example: ColumnOp "*" 0 1 means multiply the cell in column 0
+    by the cell in column 1.
+-}
 type Formula
-    = OpSymbol String
+    = ColumnOp String Int Int
 
 
 type Value
@@ -59,8 +62,10 @@ this example:
 
 ```elm
     > textSheet
-    [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["*","*","*"]]
+    [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["* 0 1","* 0 1","* 0 1"]]
 ```
+Column 2 says: compute a new column 2 by taking cell-wise projects
+of the contents of columns 0 and 1.
 
 Here is what the `parse` function yields:
 
@@ -68,18 +73,24 @@ Here is what the `parse` function yields:
     > Spreadsheet.parse textSheet
     [[Right (Real 100),Right (Real 120),Right (Real 140)]
     ,[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)]
-    ,[Left (OpSymbol "*"),Left (OpSymbol "*"),Left (OpSymbol "*")]]
-  
+    ,[Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1)]]
 ```
 
-The function `computeReal 2 0 1` parses the input spreadsheet
-, performs the computations specified in column 2 on 
-columns 0 and 1, producing a new `Spreadsheet`, which 
-is then rendered back into a `TextSpreadsheet.`
+Computation of new `TextSpreadsheet` is carried out by the function
 
 ```elm
-    > textSheet |> computeReal 2 0 1
-    [["100","120","140"],["1.1","1.4","0.9"],["110.00000000000001","168","126"]]
+computeReal : Col -> TextSpreadsheet -> TextSpreadsheet
+computeReal opCol text =
+    text
+        |> parse
+        |> applyRealOp opCol
+        |> render
 ```
 
+The middle function has type
 
+```elm
+applyRealOp : Col -> Spreadsheet -> Spreadsheet
+```
+
+Its effect is to carry out each of the computations of the given column.
