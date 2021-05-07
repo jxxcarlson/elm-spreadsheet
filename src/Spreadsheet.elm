@@ -81,17 +81,80 @@ eval sheet =
 
 evalColOps : Spreadsheet -> Spreadsheet
 evalColOps sheet =
-    List.foldl (\row sheet_ -> applyColOp row sheet_) sheet (List.range 0 (height sheet - 1))
+    let
+        _ =
+            Debug.log "evalColOps" (height sheet)
+    in
+    List.foldl (\row sheet_ -> applyColOp row sheet_) sheet (List.range 0 (width sheet - 1))
 
 
-applyColOp : Row -> Spreadsheet -> Spreadsheet
-applyColOp row sheet =
-    List.foldl (\col sheet_ -> applyColOp_ col col sheet_) sheet (List.range 0 (width sheet - 1))
+applyColOp : Col -> Spreadsheet -> Spreadsheet
+applyColOp col sheet =
+    let
+        _ =
+            Debug.log "applyColOp" "------------"
+    in
+    List.foldl (\row sheet_ -> applyColOp_ row col sheet_) sheet (List.range 0 (height sheet - 1))
 
 
 applyColOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
 applyColOp_ row col sheet =
-    sheet
+    let
+        _ =
+            Debug.log "applyColOp_" ( row, col, getCell row col sheet )
+    in
+    case getCell row col sheet of
+        Nothing ->
+            sheet
+
+        Just (Left (ColOp opSymbol i j)) ->
+            let
+                _ =
+                    Debug.log "opSymbol" opSymbol
+            in
+            case opSymbol of
+                "sum" ->
+                    putCell row col (sumColumn col i j sheet) sheet
+
+                _ ->
+                    sheet
+
+        _ ->
+            sheet
+
+
+sumColumn : Col -> Row -> Row -> Spreadsheet -> Cell
+sumColumn col row1 row2 sheet =
+    case getColumn col sheet of
+        Nothing ->
+            Right Undefined
+
+        Just column_ ->
+            sumColumn_ row1 row2 column_
+
+
+
+-- sumColumn_ : Row -> Row -> SpreadsheetColumn -> Cell
+
+
+sumColumn_ : Int -> Int -> List Cell -> Cell
+sumColumn_ row1 row2 column =
+    List.foldl (\cell acc -> addCell acc cell) 0 (listSlice row1 row2 column) |> (\x -> Right (Real x))
+
+
+addCell : Float -> Cell -> Float
+addCell y cell =
+    case cell of
+        Right (Real x) ->
+            x + y
+
+        _ ->
+            0
+
+
+listSlice : Int -> Int -> List a -> List a
+listSlice a b list =
+    list |> List.take (b + 1) |> List.drop a
 
 
 evalRowOps : Spreadsheet -> Spreadsheet

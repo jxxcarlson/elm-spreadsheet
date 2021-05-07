@@ -1,6 +1,7 @@
 scripts:
 
   dev:
+    - git ci -a
     - git co master
     - git merge dev
     - git push
