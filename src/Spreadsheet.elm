@@ -1,4 +1,18 @@
-module Spreadsheet exposing (eval, evalText, parse, render)
+module Spreadsheet exposing (parse, eval, evalText, render)
+
+{-|
+
+> Spreadsheet.parse textSheet
+
+       [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1)]]
+
+> > Spreadsheet.parse textSheet |> applyRealOp 2
+
+     [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Right (Real 110.00000000000001),Right (Real 168),Right (Real 126)]]
+
+@docs parse, eval, evalText, render
+
+-}
 
 import Cell exposing (Cell, Formula(..), Value(..))
 import Dict exposing (Dict)
@@ -8,13 +22,6 @@ import Maybe.Extra
 
 
 
-{-
-   > Spreadsheet.parse textSheet
-       [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1)]]
-
-   > > Spreadsheet.parse textSheet |>  applyRealOp 2
-     [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Right (Real 110.00000000000001),Right (Real 168),Right (Real 126)]]
--}
 -- TYPES
 
 
@@ -46,6 +53,8 @@ type alias TextColumn =
 -- PARSE
 
 
+{-| Convert a spreasheet from \`List (List String) form
+-}
 parse : TextSpreadsheet -> Spreadsheet
 parse text =
     List.map parseColumn text
@@ -60,6 +69,8 @@ parseColumn cells =
 -- RENDER
 
 
+{-| Convert a List Cell to a List (List String) representation.
+-}
 render : Spreadsheet -> TextSpreadsheet
 render sheet =
     List.map renderColumn sheet
@@ -74,6 +85,8 @@ renderColumn cells =
 -- EVAL
 
 
+{-| Evaluate a spreadsheet using the formula cells.
+-}
 eval : Spreadsheet -> Spreadsheet
 eval sheet =
     sheet |> evalRowOps |> evalColOps
