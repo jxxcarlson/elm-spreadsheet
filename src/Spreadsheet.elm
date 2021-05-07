@@ -1,14 +1,11 @@
-module Spreadsheet exposing (parse, eval, evalText, render)
+module Spreadsheet exposing
+    ( Spreadsheet, TextSpreadsheet
+    , parse, eval, evalText, render
+    )
 
-{-|
+{-| This module provides functions to parse, evaluate, and render spreadsheets.
 
-> Spreadsheet.parse textSheet
-
-       [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1),Left (ColumnOp "*" 0 1)]]
-
-> > Spreadsheet.parse textSheet |> applyRealOp 2
-
-     [[Right (Real 100),Right (Real 120),Right (Real 140)],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9)],[Right (Real 110.00000000000001),Right (Real 168),Right (Real 126)]]
+@docs Spreadsheet, TextSpreadsheet
 
 @docs parse, eval, evalText, render
 
@@ -33,16 +30,19 @@ type alias Col =
     Int
 
 
+{-| -}
 type alias SpreadsheetColumn =
     List Cell
 
 
+{-| -}
 type alias Spreadsheet =
-    List SpreadsheetColumn
+    List (List Cell)
 
 
+{-| -}
 type alias TextSpreadsheet =
-    List TextColumn
+    List (List String)
 
 
 type alias TextColumn =
@@ -53,8 +53,7 @@ type alias TextColumn =
 -- PARSE
 
 
-{-| Convert a spreasheet from \`List (List String) form
--}
+{-| -}
 parse : TextSpreadsheet -> Spreadsheet
 parse text =
     List.map parseColumn text
@@ -85,7 +84,7 @@ renderColumn cells =
 -- EVAL
 
 
-{-| Evaluate a spreadsheet using the formula cells.
+{-| Evaluate a Spreadsheet using the formula cells.
 -}
 eval : Spreadsheet -> Spreadsheet
 eval sheet =
@@ -182,11 +181,7 @@ applyRowOp_ row col sheet =
             sheet
 
 
-{-|
-
-    > [["100.0","120.0","140.0"],["1.1","1.4","0.9"],["5.6","* 0 1","* 0 1"], ["1.0", "1.0", "1.0"], ["+ 2 3", "+ 2 3", "+ 2 3"]] |> evalText
-    [["100","120","140"],["1.1","1.4","0.9"],["5.6","168","126"],["1","1","1"],["6.6","169","127"]]
-
+{-| Use the formulas in the cells to evaluate a TextSpreadsheet.
 -}
 evalText : TextSpreadsheet -> TextSpreadsheet
 evalText text =

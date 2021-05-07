@@ -1,6 +1,21 @@
-module Cell exposing (Cell, Formula(..), Value(..), parse, render)
+module Cell exposing
+    ( Cell, Formula(..), Value(..), Row, Col
+    , parse, render
+    )
 
-{- (Cell, Formula(..), Value(..)) -}
+{-| Cell specifies the kind content of Spreadsheet cells may have.
+
+
+## Types
+
+@docs Cell, Formula, Value, Row, Col
+
+
+## Functions
+
+@docs parse, render
+
+-}
 
 import Either exposing (Either(..))
 import Parser exposing ((|.), (|=), Parser)
@@ -9,23 +24,28 @@ import UtilityParser as U
 import XString
 
 
+{-| -}
 type alias Cell =
     Either Formula Value
 
 
+{-| -}
 type alias Col =
     Int
 
 
+{-| -}
 type alias Row =
     Int
 
 
+{-| -}
 type Formula
     = RowOp String Col Col
     | ColOp String Row Row
 
 
+{-| -}
 type Value
     = Integer Int
     | Real Float
@@ -34,6 +54,7 @@ type Value
     | Undefined
 
 
+{-| -}
 parse : String -> Cell
 parse input =
     case Parser.run cellParser input of
@@ -44,6 +65,7 @@ parse input =
             Right Undefined
 
 
+{-| -}
 render : Cell -> String
 render cell =
     case cell of

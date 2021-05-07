@@ -65,7 +65,7 @@ Spreadsheets can be represented in a variety of ways.
 ## Evaluation
 
 The function `eval` carries out the computations specified in the
-formula cells.  Thus the compuations
+formula cells.  Thus the sequence
 
 
 ```elm
@@ -81,4 +81,55 @@ yields the data
     -    3.4    404.0
 ```
 
-For more on how `eval` works, please see NOTES.md.
+The `eval`
+function always produces a transformed spreadsheet. When fully
+evaluated, all cells are of type`Right Value`.  In this early version
+of the package, not all valid spreadsheets are fully evaluated.
+
+
+### Remarks on `eval`
+
+The current strategy is to evaluate
+row formulas from left to right and then evaluate column formulas
+from top to bottom.  This strategy always succeeds in that it
+yields a spreadsheet.  However, the result is fully evaluated
+only if certain restrictions hold:
+
+1. A row operation in a cell at (row, col) must refer only to
+   columns i, j where i < col, j < col. Moreover, the cells
+   at (row, i) and (row, j) must contain values.
+
+2. A column operation in a cell at (row, col) must refer only
+   to rows i, j where i < row and j < row.  Moreover after
+   all row operations have been carried out as in (1), the
+   cells referred to must contain values.
+
+To lift these restrictions, we must "solve" the spreadsheet
+by finding an order in which to evaluate the operations which
+results in a fully evaluated spreadsheet.  To do this,
+consider the dependencies of the operations.  If an operation
+in cell A, which we label as "op A", depends on an operation in
+cell B, then we say that `op B` is a child of `op A`:
+
+```bash
+op A -> op B
+```
+
+Thus the operations constitute the nodes of a graph in which the
+edges represent dependencies.  A depth-first traversal of the
+graph, assuming no cyclic dependencies, will result in
+full evaluation.
+
+Thus it remains to (a) derive dependency graphs from
+spreadsheets, (b) traverse the graph depth-first, performing the
+indicated computations as each node is visited.
+
+## Plans
+
+1. Implement a depth-first evaluation strategy
+
+2. Detect cyclic dependencies
+
+3. Add formulas
+
+
