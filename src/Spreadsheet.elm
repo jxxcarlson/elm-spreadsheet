@@ -81,37 +81,21 @@ eval sheet =
 
 evalColOps : Spreadsheet -> Spreadsheet
 evalColOps sheet =
-    let
-        _ =
-            Debug.log "evalColOps" (height sheet)
-    in
     List.foldl (\row sheet_ -> applyColOp row sheet_) sheet (List.range 0 (width sheet - 1))
 
 
 applyColOp : Col -> Spreadsheet -> Spreadsheet
 applyColOp col sheet =
-    let
-        _ =
-            Debug.log "applyColOp" "------------"
-    in
     List.foldl (\row sheet_ -> applyColOp_ row col sheet_) sheet (List.range 0 (height sheet - 1))
 
 
 applyColOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
 applyColOp_ row col sheet =
-    let
-        _ =
-            Debug.log "applyColOp_" ( row, col, getCell row col sheet )
-    in
     case getCell row col sheet of
         Nothing ->
             sheet
 
         Just (Left (ColOp opSymbol i j)) ->
-            let
-                _ =
-                    Debug.log "opSymbol" opSymbol
-            in
             case opSymbol of
                 "sum" ->
                     putCell row col (sumColumn col i j sheet) sheet

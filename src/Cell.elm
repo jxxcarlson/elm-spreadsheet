@@ -13,9 +13,17 @@ type alias Cell =
     Either Formula Value
 
 
+type alias Col =
+    Int
+
+
+type alias Row =
+    Int
+
+
 type Formula
-    = RowOp String Int Int
-    | ColOp String Int Int
+    = RowOp String Col Col
+    | ColOp String Row Row
 
 
 type Value
@@ -52,7 +60,7 @@ render cell =
             String.fromFloat x
 
         Right Undefined ->
-            ""
+            "-"
 
         Right (Boolean b) ->
             stringOfBoolean b
