@@ -20,6 +20,7 @@ module Cell exposing
 import Either exposing (Either(..))
 import Parser exposing ((|.), (|=), Parser)
 import ParserTools as T
+import Utility
 import UtilityParser as U
 import XString
 
@@ -79,7 +80,7 @@ render cell =
             String.fromInt k
 
         Right (Real x) ->
-            String.fromFloat x
+            x |> Utility.roundTo 2 |> String.fromFloat
 
         Right Undefined ->
             "-"
