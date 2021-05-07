@@ -14,19 +14,25 @@ Spreadsheets can be represented in a variety of ways.
 1. As a `String`
     
     ```
-      100.0             1.1       row * 0 1
-      120.0             1.4       row * 0 1
-      140.0             0.9       row * 0 1
-          -     col sum 0 2     col sum 0 2
+      100.0             1.1       row * 1 2
+      120.0             1.4       row * 1 2
+      140.0             0.9       row * 1 2
+          -     col sum 1 3     col sum 1 3
     ```
+   
+    The entry `row * 1 2` in row `r`, column `3` means "add the cell contents at `(r, 1)`
+    to those at `(r, 2)` and put the result in the cell at `(r,3)`."  At the
+    text level, we use "human numbering," with indices starting at 1, not 0.
+    
+   
 2. As a `List (List String)`
     
     ```elm
     > TestData.text
     [
          ["100.0","120.0","140.0","-"]
-        ,["1.1","1.4","0.9","col sum 0 2"]
-        ,["row * 0 1","row * 0 1","row * 0 1","col sum 0 2"]
+        ,["1.1","1.4","0.9","col sum 1 3"]
+        ,["row * 1 2","row * 1 2,"row * 1 2,"col sum 1 3]
     ]
     ```
 
@@ -34,7 +40,10 @@ Spreadsheets can be represented in a variety of ways.
 
     ```elm
     > parse TestData.text
-    [[Right (Real 100),Right (Real 120),Right (Real 140),Right Undefined],[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9),Left (ColOp "sum" 0 2)],[Left (RowOp "*" 0 1),Left (RowOp "*" 0 1),Left (RowOp "*" 0 1),Left (ColOp "sum" 0 2)]]
+    [ [Right (Real 100),Right (Real 120),Right (Real 140),Right Undefined]
+     ,[Right (Real 1.1),Right (Real 1.4),Right (Real 0.9),Left (ColOp "sum" 1 3)]
+     ,[Left (RowOp "*" 1 2),Left (RowOp "*" 1 2),Left (RowOp "*" 1 2),Left (ColOp "sum" 1 3)]
+    ]
     ```
    
     where
