@@ -1,0 +1,8 @@
+scripts:
+
+  dev:
+    - git co master
+    - git merge dev
+    - git push
+    - git br -d dev
+    - git co -b dev
