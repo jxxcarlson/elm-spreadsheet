@@ -4,11 +4,8 @@ import Cell exposing (Cell, Col, Formula(..), Row, Value(..))
 import Either exposing (Either(..))
 import List.Extra
 import Maybe.Extra
-import Spreadsheet exposing (Spreadsheet)
-import TestData
 import Tree exposing (Tree(..), singleton, tree)
-import Tree.Extra
-import Tree.Zipper as Zipper exposing (Zipper)
+import TreeUtil exposing (..)
 
 
 
@@ -56,6 +53,20 @@ treesFromEdges edges =
     List.foldl addTreeFromEdge { trees = [], nodes = [] } edges
 
 
+insert : a -> List a -> List a
+insert a list =
+    if List.member a list then
+        list
+
+    else
+        a :: list
+
+
+multipleInsert : List a -> List a -> List a
+multipleInsert insertions list =
+    List.foldl (\item list_ -> insert item list_) list insertions
+
+
 addTreeFromEdge : Edge ( Int, Int ) -> TreeData -> TreeData
 addTreeFromEdge edge treeData =
     case ( List.member edge.from treeData.nodes, List.member edge.to treeData.nodes ) of
@@ -67,31 +78,32 @@ addTreeFromEdge edge treeData =
 
                 newTree =
                     tree edge.from [ singleton edge.to ]
-
-                newTrees =
-                    newTree :: treeData.trees
             in
-            { treeData | nodes = newNodes, trees = newTrees }
+            { treeData | nodes = newNodes, trees = insert newTree treeData.trees }
 
         ( False, True ) ->
             -- Terminal node of edge is in node list
             let
-                nodes =
+                newNodes =
                     edge.from :: treeData.nodes
 
                 _ =
-                    Debug.log "EDGE" edge
+                    Debug.log "EDGE (FT)" edge
 
                 _ =
-                    Debug.log "TREES WITH LABEL" (treesWithLabel edge.to treeData.trees)
+                    Debug.log "TREES WITH LABEL (FT)" (treesWithLabel edge.to treeData.trees)
 
                 _ =
-                    Debug.log "TREES" treeData.trees
+                    Debug.log "(FT) TREES" treeData.trees
 
-                --newTrees =
-                --    List.map Tree.Extra.attach
+                newTree =
+                    Tree.tree edge.from [ Tree.singleton edge.to ] |> Debug.log "TREE of EDGE"
+
+                newTrees =
+                    List.map (\tree_ -> attach tree_ newTree) treeData.trees
+                        |> Debug.log "NEW TREES"
             in
-            { treeData | nodes = nodes }
+            { treeData | nodes = newNodes, trees = multipleInsert newTrees treeData.trees }
 
         ( True, False ) ->
             let
