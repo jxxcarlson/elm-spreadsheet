@@ -13,6 +13,7 @@ import Tree exposing (Tree(..), singleton, tree)
 -- TREES FROM SPREADSHEET
 
 
+treesFromSpreadsheet : List (List Cell) -> List (Tree ( Int, Int ))
 treesFromSpreadsheet sheet =
     sheet
         |> augmentSpreadsheet
