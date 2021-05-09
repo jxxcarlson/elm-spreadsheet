@@ -17,7 +17,7 @@ e1 =
 
 
 type alias TreeData =
-    { trees : List (Tree ( Int, Int )), nodes : List ( Int, Int ) }
+    { count : Int, trees : List (Tree ( Int, Int )), nodes : List ( Int, Int ) }
 
 
 labelInTree : a -> Tree a -> Bool
@@ -50,7 +50,120 @@ treesWithLabel label trees =
 
 treesFromEdges : List (Edge ( Int, Int )) -> TreeData
 treesFromEdges edges =
-    List.foldl addTreeFromEdge { trees = [], nodes = [] } edges
+    List.foldl addTreeFromEdge { count = 0, trees = [], nodes = [] } edges
+
+
+reduce : List (Tree ( Int, Int )) -> List (Tree ( Int, Int ))
+reduce trees =
+    case List.Extra.uncons trees of
+        Nothing ->
+            trees
+
+        Just ( head, remaining ) ->
+            let
+                leafLabels =
+                    TreeUtil.getLeaves head |> List.map Tree.label
+
+                targets =
+                    List.filter (\tree -> List.member (Tree.label tree) leafLabels) remaining
+
+                folder : Tree a -> Tree a -> Tree a
+                folder =
+                    \tree acc -> attach tree acc
+
+                remaining2 =
+                    List.filter (\tree -> not (List.member tree targets)) remaining
+            in
+            List.foldl folder head remaining :: remaining2
+
+
+reduce2 : List (Tree ( Int, Int )) -> List (Tree ( Int, Int ))
+reduce2 trees =
+    case List.Extra.uncons trees of
+        Nothing ->
+            trees
+
+        Just ( head, remaining ) ->
+            let
+                leafLabels =
+                    TreeUtil.getLeaves head |> List.map Tree.label |> Debug.log "LEAVES"
+
+                targets =
+                    List.filter (TreeUtil.hasLabelIn leafLabels) remaining |> Debug.log "TARGETS"
+
+                prepare : ( List a, Tree a ) -> Maybe ( a, Tree a )
+                prepare ( labels, tree ) =
+                    case List.head labels of
+                        Nothing ->
+                            Nothing
+
+                        Just a ->
+                            Just ( a, tree )
+
+                pairs : List ( ( Int, Int ), Tree ( Int, Int ) )
+                pairs =
+                    List.map (\target -> ( TreeUtil.commonLabels leafLabels target, target )) targets
+                        |> List.map prepare
+                        |> Maybe.Extra.values
+                        |> Debug.log "PAIRS"
+
+                _ =
+                    Debug.log "N" (List.length pairs)
+
+                folder2 : ( ( Int, Int ), Tree ( Int, Int ) ) -> Tree ( Int, Int ) -> Tree ( Int, Int )
+                folder2 ( label, target ) tree =
+                    TreeUtil.attachAtLabel label target tree
+
+                folder : Tree a -> Tree a -> Tree a
+                folder =
+                    \tree acc -> attach tree acc
+
+                remaining2 =
+                    List.filter (\tree -> not (List.member tree targets)) remaining
+            in
+            List.foldl folder2 head pairs :: remaining2
+
+
+
+-- REDUCE3
+
+
+type alias ReducerState =
+    { tree : Tree ( Int, Int ), list : List (Tree ( Int, Int )) }
+
+
+
+-- loop : state -> (state -> Step state a) -> a
+
+
+reduce3 : List (Tree ( Int, Int )) -> Maybe (Tree ( Int, Int ))
+reduce3 list =
+    case List.Extra.uncons list of
+        Nothing ->
+            Nothing
+
+        Just ( tree, remaining ) ->
+            Just (loop { tree = tree, list = remaining } updateReducerState)
+
+
+updateReducerState : ReducerState -> Step ReducerState (Tree ( Int, Int ))
+updateReducerState state =
+    case List.Extra.uncons state.list of
+        Nothing ->
+            Done state.tree
+
+        Just ( tree, remaining ) ->
+            Loop { tree = attachTree tree state.tree, list = remaining }
+
+
+attachTree : Tree ( Int, Int ) -> Tree ( Int, Int ) -> Tree ( Int, Int )
+attachTree tree1 tree2 =
+    case List.head (TreeUtil.commonLabelsOfTrees tree1 tree2) of
+        Nothing ->
+            tree2
+
+        Just a ->
+            TreeUtil.attachAtLabel a tree1 tree2
 
 
 insert : a -> List a -> List a
@@ -69,6 +182,13 @@ multipleInsert insertions list =
 
 addTreeFromEdge : Edge ( Int, Int ) -> TreeData -> TreeData
 addTreeFromEdge edge treeData =
+    --let
+    --    indicator =
+    --        ( List.member edge.from treeData.nodes, List.member edge.to treeData.nodes )
+    --
+    --    _ =
+    --        Debug.log "TREES" ( ( treeData.count, List.length treeData.trees, indicator ), edge, treeData.trees )
+    --in
     case ( List.member edge.from treeData.nodes, List.member edge.to treeData.nodes ) of
         ( False, False ) ->
             -- None of the nodes of the edge are in node list
@@ -79,7 +199,7 @@ addTreeFromEdge edge treeData =
                 newTree =
                     tree edge.from [ singleton edge.to ]
             in
-            { treeData | nodes = newNodes, trees = insert newTree treeData.trees }
+            { treeData | count = treeData.count + 1, nodes = newNodes, trees = insert newTree treeData.trees }
 
         ( False, True ) ->
             -- Terminal node of edge is in node list
@@ -87,37 +207,72 @@ addTreeFromEdge edge treeData =
                 newNodes =
                     edge.from :: treeData.nodes
 
-                _ =
-                    Debug.log "EDGE (FT)" edge
-
-                _ =
-                    Debug.log "TREES WITH LABEL (FT)" (treesWithLabel edge.to treeData.trees)
-
-                _ =
-                    Debug.log "(FT) TREES" treeData.trees
-
                 newTree =
-                    Tree.tree edge.from [ Tree.singleton edge.to ] |> Debug.log "TREE of EDGE"
+                    Tree.tree edge.from [ Tree.singleton edge.to ]
 
+                --|> Debug.log "TREE of EDGE"
+                treesForAttachment =
+                    TreeUtil.treesWithLabel edge.to treeData.trees
+
+                --|> Debug.log "TREES FOR ATTACHMENT"
+                treesWithoutAttachment =
+                    List.foldl (\tree_ acc -> List.Extra.remove tree_ acc) treeData.trees treesForAttachment
+
+                -- |> Debug.log "TREES WITHOUT ATTACHMENT"
                 newTrees =
-                    List.map (\tree_ -> attach tree_ newTree) treeData.trees
-                        |> Debug.log "NEW TREES"
+                    List.map (\tree_ -> attach tree_ newTree) treesForAttachment
+
+                -- |> Debug.log "NEW TREES"
             in
-            { treeData | nodes = newNodes, trees = multipleInsert newTrees treeData.trees }
+            { treeData | count = treeData.count + 1, nodes = newNodes, trees = newTrees ++ treesWithoutAttachment }
 
         ( True, False ) ->
             let
                 nodes =
                     edge.to :: treeData.nodes
+
+                --_ =
+                --    Debug.log "EDGE" edge
+                newTree =
+                    Tree.tree edge.from [ singleton edge.to ]
+
+                treesForAttachment =
+                    TreeUtil.treesWithLabel edge.from treeData.trees
+
+                --|> Debug.log "TREES FOR ATTACHMENT"
+                treesWithoutAttachment =
+                    List.foldl (\tree_ acc -> List.Extra.remove tree_ acc) treeData.trees treesForAttachment
+
+                --|> Debug.log "TREES WITHOUT ATTACHMENT"
+                newTrees =
+                    List.map (\tree_ -> TreeUtil.attachAtLabel edge.from newTree tree_) treesForAttachment
+
+                --|> Debug.log "NEW TREES"
             in
-            { treeData | nodes = nodes }
+            { treeData | count = treeData.count + 1, nodes = nodes, trees = newTrees ++ treesWithoutAttachment }
 
         ( True, True ) ->
             let
                 nodes =
                     treeData.nodes
+
+                newTree =
+                    Tree.tree edge.from [ singleton edge.to ]
+
+                treesForAttachment =
+                    TreeUtil.treesWithLabel edge.from treeData.trees
+
+                --|> Debug.log "TREES FOR ATTACHMENT"
+                treesWithoutAttachment =
+                    List.foldl (\tree_ acc -> List.Extra.remove tree_ acc) treeData.trees treesForAttachment
+
+                --|> Debug.log "TREES WITHOUT ATTACHMENT"
+                newTrees =
+                    List.map (\tree_ -> TreeUtil.attachAtLabel edge.from newTree tree_) treesForAttachment
+
+                --|> Debug.log "NEW TREES"
             in
-            { treeData | nodes = nodes }
+            { treeData | count = treeData.count + 1, nodes = nodes, trees = newTrees ++ treesWithoutAttachment }
 
 
 edgeInNodeList : Edge ( Int, Int ) -> List ( Int, Int ) -> Bool
@@ -302,6 +457,21 @@ augmentRowsOfSpreadsheet list =
 
 
 -- UTILITY
+
+
+type Step state a
+    = Loop state
+    | Done a
+
+
+loop : state -> (state -> Step state a) -> a
+loop s nextState =
+    case nextState s of
+        Loop s_ ->
+            loop s_ nextState
+
+        Done b ->
+            b
 
 
 cellAt : Row -> Col -> List (List a) -> Maybe a
