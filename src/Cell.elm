@@ -1,5 +1,5 @@
 module Cell exposing
-    ( Cell, Formula(..), Value(..), Row, Col
+    ( Cell, Formula(..), Value(..), Row, Col, Location
     , parse, render
     )
 
@@ -38,6 +38,8 @@ type alias Col =
 {-| -}
 type alias Row =
     Int
+
+type alias Location = (Int, Int)
 
 
 {-| -}
