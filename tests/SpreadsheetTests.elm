@@ -9,6 +9,7 @@ import Fuzz exposing (Fuzzer, int, list, string)
 import Parser
 import Spreadsheet exposing (..)
 import Test exposing (..)
+import Utility
 
 
 suite : Test
@@ -40,6 +41,26 @@ suite =
                         |> Maybe.andThen (getCell 3 1)
                         |> Expect.equal
                             (Just (Right (Real 2.5)))
+            , test "test evalCell" <|
+                let
+                    cell =
+                        Left <| Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 1, row = 1 } })
+                in
+                \_ ->
+                    ss1
+                        |> spreadSheetFromListList
+                        |> Maybe.map (evalCell 3 1 cell)
+                        |> Maybe.andThen (getCell 3 1)
+                        |> Expect.equal
+                            (Just (Right (Real 2.5)))
+            , test "Column formula: is add computation correct?" <|
+                \_ ->
+                    ss1a
+                        |> spreadSheetFromListList
+                        |> Maybe.map evalSheet
+                        |> Maybe.andThen (getCell 3 1)
+                        |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
+                        |> Expect.equal (Just (Right (Real 3.1)))
 
             --, test "Column formula: is addRange computation correct?" <|
             --    \_ ->
@@ -82,6 +103,10 @@ s1 =
     [ "100", "1.1", "a" ]
 
 
+s1a =
+    [ "100", "1.7", "a" ]
+
+
 s2 =
     [ "120", "1.4", "b" ]
 
@@ -98,6 +123,10 @@ s4b =
     [ "-", "add A2,C2", "d" ]
 
 
+s4a =
+    [ "-", "add A2,B2", "d" ]
+
+
 
 {-
            1       2   3
@@ -112,6 +141,10 @@ s4b =
 
 ss1 =
     [ s1, s2, s3, s4 ]
+
+
+ss1a =
+    [ s1a, s2, s3, s4a ]
 
 
 ss1b =

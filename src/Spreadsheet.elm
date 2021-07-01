@@ -2,8 +2,10 @@ module Spreadsheet exposing
     ( Spreadsheet, TextSpreadsheet
     ,  array2DfromListList
       , columnWithDefault
-      , evalFormula
+      , evalCell
         -- , parse, eval, evalText, render
+      , evalFormula
+      , evalSheet
       , getCell
       , rowWithDefault
       , spreadSheetFromListList
@@ -85,6 +87,21 @@ array2DfromListList : List (List a) -> Maybe (Array2D a)
 array2DfromListList lists =
     Array.fromList (List.map Array.fromList lists)
         |> Array2D.fromRows
+
+
+evalSheet : Spreadsheet -> Spreadsheet
+evalSheet sheet =
+    Array.foldl (\( i, j, cell ) sheet_ -> evalCell i j cell sheet_) sheet (Array2D.indexedMap (\i_ j_ cell_ -> ( i_, j_, cell_ )) sheet |> Array2D.toFlatArrayRowMajor)
+
+
+evalCell : Int -> Int -> Cell -> Spreadsheet -> Spreadsheet
+evalCell i j cell sheet =
+    case cell of
+        Right _ ->
+            sheet
+
+        Left formula ->
+            evalFormula i j formula sheet
 
 
 evalFormula : Int -> Int -> Formula -> Spreadsheet -> Spreadsheet

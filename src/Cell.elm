@@ -1,7 +1,7 @@
 module Cell exposing
     ( Cell, Formula(..), Value(..), Row, Col
     , render
-    , Index, Op(..), Operands(..), RawOperands, opFromString, realValue, stringFromOp
+    , Index, Op(..), Operands(..), RawOperands, mapReal, opFromString, realValue, stringFromOp
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -43,6 +43,16 @@ type alias Index =
 
 type alias RawOperands =
     { left : Index, right : Index }
+
+
+mapReal : (Float -> Float) -> Cell -> Cell
+mapReal f cell =
+    case cell of
+        Right (Real x) ->
+            Right (Real (f x))
+
+        _ ->
+            cell
 
 
 type Operands
