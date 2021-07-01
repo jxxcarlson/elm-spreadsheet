@@ -1,25 +1,12 @@
-module Spreadsheet exposing
-    ( Spreadsheet, TextSpreadsheet
+module Spreadsheet exposing ( Spreadsheet, TextSpreadsheet
     , eval
-    ,  array2DfromListList
-      , columnWithDefault
-      , evalCell
-      , evalFormula
-      , evalOnce
-      , getCell
-      , isEvaluated
-      , rowWithDefault
-      , spreadSheetFromListList
-      , textSpreadSheetFromListList
-        -- , parse, evalText, render
-
+    , array2DfromListList, columnWithDefault, evalCell, evalFormula, evalOnce, getCell, isEvaluated, rowWithDefault, spreadSheetFromListList, textSpreadSheetFromListList
     )
 
 {-| This module provides functions to parse, evaluate, and render spreadsheets.
 
-@docs Spreadsheet, TextSpreadsheet
+@docs eval
 
-@docs parse, eval, evalText, render
 
 -}
 
@@ -32,13 +19,18 @@ import Either exposing (Either(..))
 import Maybe.Extra
 
 
+
+{-| Evaluate the formulas in a spreadsheet -}
 eval : Spreadsheet -> Spreadsheet
 eval sheet =
-    eval_ { count = 10, sheet = sheet } |> .sheet
+    eval_ { count = Array2D.length sheet, sheet = sheet } |> .sheet
 
 
 eval_ : { count : Int, sheet : Spreadsheet } -> { count : Int, sheet : Spreadsheet }
 eval_ { count, sheet } =
+    let
+      _ = Debug.log "(count, notEvaluated)" (count, notEvaluated sheet)
+    in
     if count == 0 then
         { count = count, sheet = sheet }
 
@@ -63,6 +55,12 @@ isEvaluated sheet =
             )
             True
 
+notEvaluated : Spreadsheet -> Int
+notEvaluated sheet =
+    Array2D.map Cell.isValue sheet
+        |> Array2D.toFlatArrayRowMajor
+        |> Array.filter (\b -> not b)
+        |> Array.length
 
 
 -- TYPES

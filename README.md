@@ -14,15 +14,16 @@ Spreadsheets can be represented in a variety of ways.
 1. As a `String`
     
     ```
-      100.0             1.1       row * 1 2
-      120.0             1.4       row * 1 2
-      140.0             0.9       row * 1 2
-          -     col sum 1 3     col sum 1 3
+      100.0        1.1       mul A1,A2
+      120.0        1.4       mul B1,B2
+      140.0        0.9       mul C1,C2
+          -     add A2:C2    add A3:C3
     ```
    
-    The entry `row * 1 2` in row `r`, column `3` means "add the cell contents at `(r, 1)`
-    to those at `(r, 2)` and put the result in the cell at `(r,3)`."  At the
-    text level, we use "human numbering," with indices starting at 1, not 0.
+    The entry `mul A1,A2` means multiply the contents of cell A1 by the
+    conents of cell A2.
+
+    The entry `add A2:C2` means add the entries in column 2 between rows A and C.
     
    
 2. As a `List (List String)`

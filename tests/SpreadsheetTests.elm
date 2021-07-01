@@ -131,14 +131,21 @@ suite =
                         |> Maybe.map eval
                         |> Maybe.andThen (getCell 3 1)
                         |> Expect.equal (Just (Right (Real 15.0)))
-            , only <|
-                test "Row formula: is add computation correct?" <|
+            , test "Row formula: is add computation correct?" <|
                     \_ ->
                         s7
                             |> spreadSheetFromListList
                             |> Maybe.map eval
                             |> Maybe.andThen (getCell 2 3)
                             |> Expect.equal (Just (Right (Real 24.0)))
+           , only <| test "is spreadsheet correctly evaluates" <|
+                    \_ ->
+                        s8
+                            |> spreadSheetFromListList
+                            |> Maybe.map eval
+                            |> Maybe.andThen (getCell 2 2)
+                            |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
+                            |> Expect.equal (Just (Right (Real 126.0)))            
             , test "Cell.parse on formula" <|
                 \_ ->
                     Parser.run CellParser.cellParser "add A2:Z2" |> Expect.equal (Ok (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } }))))
@@ -246,3 +253,11 @@ s7 =
     , [ "7.0", "8.0", "9.0", "add C1:C3" ]
     , [ "1.0", "1", "2.0", "3.0" ]
     ]
+
+
+s8 = 
+     [ ["100.0",      "1.1",       "mul A1,A2"]
+      , ["120.0",     "1.4" ,      "mul B1,B2"]
+      , ["140.0",     " 0.9",       "mul C1,C2"]
+       , [  "-" ,    "add A2:C2",    "add A3:C3"]
+     ]

@@ -1,7 +1,6 @@
 module Cell exposing
-    ( Cell, Formula(..), Value(..)
-    , render
-    , Index, Op(..), Operands(..), RawOperands, isValue, mapReal, opFromString, realValue, stringFromOp
+    ( Cell, Formula(..), Value(..), Index, Op(..), Operands(..), RawOperands
+    , render, isValue, mapReal, opFromString, realValue, stringFromOp
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -9,12 +8,12 @@ module Cell exposing
 
 ## Types
 
-@docs Cell, Formula, Value, Row, Col
+@docs Cell, Formula, Value, Index, Op, Operands, RawOperands
 
 
 ## Functions
 
-@docs parse, render
+@docs render, isValue, mapReal, opFromString, realValue, stringFromOp
 
 -}
 
@@ -42,18 +41,23 @@ type Formula
     = Formula Op Operands
 
 
-
+{-| -}
 type Operands
     = Pair RawOperands
     | Range RawOperands
 
+
+{-| -}
 type alias RawOperands =
     { left : Index, right : Index }
 
+
+{-| -}
 type alias Index =
     { row : Int, col : Int }
 
 
+{-| -}
 type Op
     = NoOp
     | Add
@@ -71,10 +75,7 @@ type Value
     | Undefined
 
 
-
-
-
-
+{-| -}
 isValue : Cell -> Bool
 isValue cell =
     case cell of
@@ -88,6 +89,7 @@ isValue cell =
             True
 
 
+{-| -}
 mapReal : (Float -> Float) -> Cell -> Cell
 mapReal f cell =
     case cell of
@@ -96,7 +98,6 @@ mapReal f cell =
 
         _ ->
             cell
-
 
 
 stringFromOperands operands =
@@ -113,7 +114,7 @@ stringFromIndex { row, col } =
     "{ row = " ++ String.fromInt row ++ ", col = " ++ String.fromInt col ++ "}"
 
 
-
+{-| -}
 realValue : Cell -> Maybe Float
 realValue cell =
     case cell of
@@ -127,6 +128,7 @@ realValue cell =
             Nothing
 
 
+{-| -}
 stringFromOp : Op -> String
 stringFromOp op =
     case op of
@@ -146,6 +148,7 @@ stringFromOp op =
             "NoOp"
 
 
+{-| -}
 opFromString : String -> Op
 opFromString str =
     case str of
