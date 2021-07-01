@@ -66,7 +66,7 @@ Thus the result is the fully evaluated spreadsheet
 Currently the operations implemented are limited:
 
     add A1,H4   -- cellwise addition
-    mul A1,H4   -- cellwise multpilication
+    mul A1,H4   -- cellwise multiplication
     sub A1,H4   -- cellwise subtraction
     div A1,H4   -- cellwise division
 
