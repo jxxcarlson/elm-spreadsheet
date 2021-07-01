@@ -15,10 +15,9 @@ module Spreadsheet exposing
 import Array exposing (Array)
 import Array2D exposing (Array2D)
 import Cell exposing (Cell, Formula(..), Op(..), Value(..))
+import CellParser1 as CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import List.Extra
-import Maybe.Extra
 
 
 
@@ -84,7 +83,7 @@ array2DfromListList lists =
 {-| -}
 parse : TextSpreadsheet -> Spreadsheet
 parse sheet =
-    Array2D.map Cell.parse sheet
+    Array2D.map CellParser.parse sheet
 
 
 

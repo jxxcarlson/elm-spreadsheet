@@ -2,6 +2,7 @@ module SpreadsheetTests exposing (..)
 
 import Array2D
 import Cell exposing (..)
+import CellParser1
 import Either exposing (Either(..))
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -41,13 +42,13 @@ suite =
                         |> Expect.equal (Just (Right (Real 2.5)))
             , test "Cell.parse on formula" <|
                 \_ ->
-                    Cell.parse "col addRange 1 2" |> Expect.equal (Left (ColOp AddRange 0 1))
+                    CellParser1.parse "col addRange 1 2" |> Expect.equal (Left (ColOp AddRange 0 1))
             , test "Cell.parse on decimal number" <|
                 \_ ->
-                    Cell.parse "1.2" |> Expect.equal (Right (Real 1.2))
+                    CellParser1.parse "1.2" |> Expect.equal (Right (Real 1.2))
             , test "Cell.parse on whole number" <|
                 \_ ->
-                    Cell.parse "3" |> Expect.equal (Right (Integer 3))
+                    CellParser1.parse "3" |> Expect.equal (Right (Integer 3))
             ]
         ]
 
