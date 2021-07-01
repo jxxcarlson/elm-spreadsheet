@@ -57,7 +57,7 @@ suite =
                 \_ ->
                     ss1a
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 3 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 3.1)))
@@ -65,7 +65,7 @@ suite =
                 \_ ->
                     ss1c
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 3 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 3.1)))
@@ -73,7 +73,7 @@ suite =
                 \_ ->
                     ss1d
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 3 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 21.7)))
@@ -81,7 +81,7 @@ suite =
                 \_ ->
                     ss2
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 3 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 90.0)))
@@ -89,7 +89,7 @@ suite =
                 \_ ->
                     ss2
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 1 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.notEqual (Just (Right (Real 92.0)))
@@ -97,8 +97,8 @@ suite =
                 \_ ->
                     ss2
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
+                        |> Maybe.map evalOnce
                         |> Maybe.andThen (getCell 1 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 92.0)))
@@ -106,17 +106,24 @@ suite =
                 \_ ->
                     ss2
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
+                        |> Maybe.map evalOnce
                         |> Maybe.map Spreadsheet.isEvaluated
                         |> Expect.equal (Just True)
             , test "evalSheet (8): is the spreadsheet evaluated?" <|
                 \_ ->
                     ss2
                         |> spreadSheetFromListList
-                        |> Maybe.map evalSheet
+                        |> Maybe.map evalOnce
                         |> Maybe.map Spreadsheet.isEvaluated
                         |> Expect.equal (Just False)
+            , test "eval (9): is the spreadsheet evaluated?" <|
+                \_ ->
+                    ss2
+                        |> spreadSheetFromListList
+                        |> Maybe.map eval
+                        |> Maybe.map Spreadsheet.isEvaluated
+                        |> Expect.equal (Just True)
 
             --, test "Column formula: is addRange computation correct?" <|
             --    \_ ->

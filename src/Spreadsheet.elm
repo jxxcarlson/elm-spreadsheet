@@ -1,16 +1,17 @@
 module Spreadsheet exposing
     ( Spreadsheet, TextSpreadsheet
+    , eval
     ,  array2DfromListList
       , columnWithDefault
       , evalCell
-        -- , parse, eval, evalText, render
       , evalFormula
-      , evalSheet
+      , evalOnce
       , getCell
       , isEvaluated
       , rowWithDefault
       , spreadSheetFromListList
       , textSpreadSheetFromListList
+        -- , parse, eval, evalText, render
 
     )
 
@@ -28,6 +29,23 @@ import Cell exposing (Cell, Formula(..), Op(..), Operands(..), Value(..))
 import CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+
+
+eval : Spreadsheet -> Spreadsheet
+eval sheet =
+    eval_ { count = 10, sheet = sheet } |> .sheet
+
+
+eval_ : { count : Int, sheet : Spreadsheet } -> { count : Int, sheet : Spreadsheet }
+eval_ { count, sheet } =
+    if count == 0 then
+        { count = count, sheet = sheet }
+
+    else if isEvaluated sheet then
+        { count = count, sheet = sheet }
+
+    else
+        eval_ { count = count - 1, sheet = evalOnce sheet }
 
 
 isEvaluated : Spreadsheet -> Bool
@@ -105,8 +123,8 @@ array2DfromListList lists =
         |> Array2D.fromRows
 
 
-evalSheet : Spreadsheet -> Spreadsheet
-evalSheet sheet =
+evalOnce : Spreadsheet -> Spreadsheet
+evalOnce sheet =
     Array.foldl (\( i, j, cell ) sheet_ -> evalCell i j cell sheet_) sheet (Array2D.indexedMap (\i_ j_ cell_ -> ( i_, j_, cell_ )) sheet |> Array2D.toFlatArrayRowMajor)
 
 
