@@ -21,7 +21,7 @@ suite =
                 \_ ->
                     ss1
                         |> readFromList
-                        |> Maybe.andThen (getCell 3 1)
+                        |> getCell 3 1
                         |> Expect.equal
                             (Just (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 2 } }))))
             , test "test evalFormula" <|
@@ -32,109 +32,107 @@ suite =
                 \_ ->
                     ss1
                         |> readFromList
-                        |> Maybe.map (evalFormula 3 1 formula)
-                        |> Maybe.andThen (getCell 3 1)
+                        |> evalFormula 3 1 formula
+                        |>  getCell 3 1
                         |> Expect.equal
                             (Just (Right (Real 2.5)))
             , test "evalSheet (1): is add computation correct?" <|
                 \_ ->
                     s2
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 3 1)
+                        |> eval
+                        |> getCell 3 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 3.1)))
             , test "evalSheet (2): is add computation correct?" <|
                 \_ ->
                     s3
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 3 1)
+                        |> eval
+                        |> getCell 3 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 3.1)))
             , test "evalSheet (3): is add computation correct?" <|
                 \_ ->
                     s4
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 3 1)
+                        |> eval
+                        |> getCell 3 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 21.7)))
             , test "evalSheet (4): is add computation correct?" <|
                 \_ ->
                     s5
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 3 1)
+                        |> eval
+                        |> getCell 3 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 90.0)))
             , test "evalSheet (5): is add computation correct?" <|
                 \_ ->
                     s5
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 1 1)
+                        |> eval
+                        |> getCell 1 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 92.0)))
             , test "evalSheet (6): is add computation correct?" <|
                 \_ ->
                     s5
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 1 1)
+                        |> eval
+                        |> getCell 1 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 92.0)))
             , test "evalSheet (7): is the spreadsheet evaluated?" <|
                 \_ ->
                     s5
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.map eval
-                        |> Maybe.map Spreadsheet.isEvaluated
-                        |> Expect.equal (Just True)
-            , test "evalSheet (8): is the spreadsheet evaluated?" <|
-                \_ ->
-                    s5
-                        |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.map Spreadsheet.isEvaluated
-                        |> Expect.equal (Just True)
+                        |>  eval
+                        |> Spreadsheet.isEvaluated
+                        |> Expect.equal True
+            -- , skip <| test "evalSheet (8): is the spreadsheet evaluated?" <|
+            --     \_ ->
+            --         s5
+            --             |> readFromList
+            --             |> eval
+            --             |> Spreadsheet.isEvaluated                                                                                        |> Maybe.map Spreadsheet.isEvaluated
+            --             |> Expect.equal True
             , test "eval (9): is the spreadsheet evaluated?" <|
                 \_ ->
                     s5
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.map Spreadsheet.isEvaluated
-                        |> Expect.equal (Just True)
+                        |> eval
+                        |> Spreadsheet.isEvaluated
+                        |> Expect.equal True
             , test "Column formula: is addRange computation correct?" <|
                 \_ ->
                     s6
                         |> readFromList
-                        |> Maybe.map eval
-                        |> Maybe.andThen (getCell 3 1)
+                        |> eval
+                        |> getCell 3 1
                         |> Expect.equal (Just (Right (Real 15.0)))
             , test "Row formula: is add computation correct?" <|
                     \_ ->
                         s7
                             |> readFromList
-                            |> Maybe.map eval
-                            |> Maybe.andThen (getCell 2 3)
+                            |> eval
+                            |> getCell 2 3
                             |> Expect.equal (Just (Right (Real 24.0)))
            ,   test "Is spreadsheet correctly evaluated?" <|
                     \_ ->
                         s8
                             |> readFromList
-                            |> Maybe.map eval
-                            |> Maybe.andThen (getCell 3 2)
+                            |> eval
+                            |> getCell 3 2
                             |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                             |> Expect.equal (Just (Right (Real 404.0)))   
             , test "Is spreadsheet correctly evaluated???" <|
                     \_ ->
                         s8b
                             |> read
-                            |> Maybe.map eval
-                            |> Maybe.andThen (getCell 3 1)
+                            |> eval
+                            |> getCell 3 1
                             |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                             |> Expect.equal (Just (Right (Real 3.4)))                           
             , test "Cell.parse on formula" <|

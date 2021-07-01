@@ -51,7 +51,6 @@ read str =
    |> List.filter (\line -> line /= "")
    |> List.map (String.split ";" >> (List.map String.trim))
    |> readFromList
-   |> Maybe.withDefault emptySpreadsheet
    
 
 {-| Evaluate the formulas in a spreadsheet -}
@@ -134,9 +133,12 @@ getCell i j sheet =
 -- PARSE
 
 {-| -}
-readFromList : List (List String) -> Maybe Spreadsheet
+readFromList : List (List String) -> Spreadsheet
 readFromList lists =
-    textSpreadSheetFromListList lists |> Maybe.map (Array2D.map CellParser.parse)
+    textSpreadSheetFromListList lists 
+       |> Maybe.map (Array2D.map CellParser.parse)
+       |> Maybe.withDefault emptySpreadsheet
+
 
 
 textSpreadSheetFromListList : List (List String) -> Maybe TextSpreadsheet

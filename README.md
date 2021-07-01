@@ -61,3 +61,17 @@ Thus the result is the fully evaluated spreadsheet
     -;   3.4; 404
 
 
+## Operations
+
+Currently the operations implemented are limited:
+
+    add A1,H4   -- cellwise addition
+    mul A1,H4   -- cellwise multpilication
+    sub A1,H4   -- cellwise subtraction
+    div A1,H4   -- cellwise division
+
+    add B2:B9   -- add the elements of row B from columns 2 through 9
+    add B2:Q2   -- add the elements of column 2 from rows B through Q
+
+More operations later.
+
