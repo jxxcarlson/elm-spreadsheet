@@ -53,10 +53,10 @@ suite =
                     CellParser1.parse "3" |> Expect.equal (Right (Integer 3))
             , test "Cell2.parseIndex" <|
                 \_ ->
-                    Parser.run CellParser2.parseIndex "z2" |> Expect.equal (Ok { col = 1, row = 25 })
+                    Parser.run CellParser2.indexParser "z2" |> Expect.equal (Ok { col = 1, row = 25 })
             , test "Cell2.parseIndex,  2 digits" <|
                 \_ ->
-                    Parser.run CellParser2.parseIndex "aa2" |> Expect.equal (Ok { col = 1, row = 26 })
+                    Parser.run CellParser2.indexParser "aa2" |> Expect.equal (Ok { col = 1, row = 26 })
             ]
         ]
 

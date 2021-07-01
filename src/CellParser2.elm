@@ -15,6 +15,7 @@ module CellParser2 exposing (..)
 import Cell exposing (..)
 import Either exposing (Either(..))
 import Parser exposing ((|.), (|=), Parser)
+import ParserUtil
 import Utility
 import UtilityParser as U
 import XString
@@ -24,8 +25,17 @@ type alias Index =
     { row : Int, col : Int }
 
 
+type AnnotatedIndex
+    = P Index
+    | R Index
+
+
 type alias RawOperands =
     { left : Index, right : Index }
+
+
+type alias AnnotatedOperands =
+    { left : Index, right : AnnotatedIndex }
 
 
 type Operands
@@ -33,11 +43,53 @@ type Operands
     | Range RawOperands
 
 
-parseIndex : Parser Index
-parseIndex =
+
+-- formulaParser :
+
+
+transform : AnnotatedOperands -> Operands
+transform { left, right } =
+    case right of
+        P index ->
+            Pair { left = left, right = index }
+
+        R index ->
+            Range { left = left, right = index }
+
+
+{-|
+
+    > run C.parseIndex "a2"
+    Ok { col = 1, row = 0 }
+
+-}
+indexParser : Parser Index
+indexParser =
     Parser.succeed (\i j -> { row = i - 1, col = j - 1 })
         |= (XString.withPredicates Char.isAlpha Char.isAlpha |> Parser.map order)
         |= Parser.int
+
+
+operandsParser : Parser Operands
+operandsParser =
+    Parser.succeed (\a b -> transform { left = a, right = b })
+        |= indexParser
+        |= annotatedIndexParser
+
+
+annotatedIndexParser : Parser AnnotatedIndex
+annotatedIndexParser =
+    Parser.oneOf [ trailingOperandParser1 |> Parser.map P, trailingOperandParser2 |> Parser.map R ]
+
+
+trailingOperandParser1 : Parser Index
+trailingOperandParser1 =
+    ParserUtil.second (XString.oneCharWithPredicate (\c -> c == ' ')) indexParser
+
+
+trailingOperandParser2 : Parser Index
+trailingOperandParser2 =
+    ParserUtil.second (XString.oneCharWithPredicate (\c -> c == ':')) indexParser
 
 
 order : String -> Int
@@ -140,10 +192,10 @@ stringOfBoolean b =
 
 cellParser : Parser Cell
 cellParser =
-    Parser.oneOf [ Parser.backtrackable opParser |> Parser.map Left, valueParser |> Parser.map Right ]
+    Parser.oneOf [ Parser.backtrackable opParser2 |> Parser.map Left, valueParser |> Parser.map Right ]
 
 
-opParser =
+opParser2 =
     Parser.oneOf [ rowOpParser, colOpParser ]
 
 

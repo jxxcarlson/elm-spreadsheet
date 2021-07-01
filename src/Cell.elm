@@ -19,7 +19,6 @@ module Cell exposing
 -}
 
 import Either exposing (Either(..))
-import Parser exposing ((|.), (|=), Parser)
 import Utility
 
 
