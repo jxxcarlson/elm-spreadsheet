@@ -86,10 +86,10 @@ reduce2 trees =
         Just ( head, remaining ) ->
             let
                 leafLabels =
-                    TreeUtil.getLeaves head |> List.map Tree.label |> Debug.log "LEAVES"
+                    TreeUtil.getLeaves head |> List.map Tree.label 
 
                 targets =
-                    List.filter (TreeUtil.hasLabelIn leafLabels) remaining |> Debug.log "TARGETS"
+                    List.filter (TreeUtil.hasLabelIn leafLabels) remaining 
 
                 prepare : ( List a, Tree a ) -> Maybe ( a, Tree a )
                 prepare ( labels, tree ) =
@@ -105,10 +105,7 @@ reduce2 trees =
                     List.map (\target -> ( TreeUtil.commonLabels leafLabels target, target )) targets
                         |> List.map prepare
                         |> Maybe.Extra.values
-                        |> Debug.log "PAIRS"
 
-                _ =
-                    Debug.log "N" (List.length pairs)
 
                 folder2 : ( ( Int, Int ), Tree ( Int, Int ) ) -> Tree ( Int, Int ) -> Tree ( Int, Int )
                 folder2 ( label, target ) tree =

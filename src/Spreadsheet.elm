@@ -1,11 +1,10 @@
-module Spreadsheet exposing ( Spreadsheet, TextSpreadsheet
-    , eval
-    , array2DfromListList, columnWithDefault, evalCell, evalFormula, evalOnce, getCell, isEvaluated, rowWithDefault, spreadSheetFromListList, textSpreadSheetFromListList
-    )
+module Spreadsheet exposing (read, print, readFromList, eval, getCell, evalFormula, isEvaluated)
+
+
 
 {-| This module provides functions to parse, evaluate, and render spreadsheets.
 
-@docs eval
+@docs read, readFromList, print, getCell, eval, evalFormula, isEvaluated
 
 
 -}
@@ -17,30 +16,65 @@ import CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Maybe.Extra
+import List.Extra
 
+s7 = """
 
+100; 1.1; mul A1,A2
+120; 1.4; mul B1,B2
+140; 0.9; mul C1,C2
+-;   add A2:C2; add A3:C3
+
+""" 
+
+{-| -}
+print : Array2D (Cell) -> String
+print sheet = 
+    let 
+      cols = Array2D.columns sheet
+    in
+    Array2D.map Cell.render sheet
+        |> Array2D.toFlatArrayRowMajor
+        |> Array.toList
+        |> List.Extra.groupsOf cols
+        |> List.map (String.join "; ")
+        |> String.join "\n"
+     
+  
+
+{-| -}
+read: String ->  Spreadsheet
+read str = 
+  str 
+   |> String.lines
+   |> List.map String.trim
+   |> List.filter (\line -> line /= "")
+   |> List.map (String.split ";" >> (List.map String.trim))
+   |> readFromList
+   |> Maybe.withDefault emptySpreadsheet
+   
 
 {-| Evaluate the formulas in a spreadsheet -}
 eval : Spreadsheet -> Spreadsheet
 eval sheet =
-    eval_ { count = Array2D.length sheet, sheet = sheet } |> .sheet
+    eval_ { notEvaluated = Array2D.length sheet, sheet = evalOnce sheet } |> .sheet
 
 
-eval_ : { count : Int, sheet : Spreadsheet } -> { count : Int, sheet : Spreadsheet }
-eval_ { count, sheet } =
+eval_ : { notEvaluated : Int, sheet : Spreadsheet } -> { notEvaluated : Int, sheet : Spreadsheet }
+eval_ { notEvaluated, sheet } =
     let
-      _ = Debug.log "(count, notEvaluated)" (count, notEvaluated sheet)
+      sheet2 = evalOnce sheet
+      notEvaluated2 = countNotEvaluated sheet2
+
     in
-    if count == 0 then
-        { count = count, sheet = sheet }
+    if notEvaluated2 == notEvaluated then
+        { notEvaluated = notEvaluated, sheet = sheet }
 
-    else if isEvaluated sheet then
-        { count = count, sheet = sheet }
-
-    else
-        eval_ { count = count - 1, sheet = evalOnce sheet }
+    else 
+      eval_  { notEvaluated = notEvaluated2, sheet = sheet2 }
 
 
+{-| -}
 isEvaluated : Spreadsheet -> Bool
 isEvaluated sheet =
     Array2D.map Cell.isValue sheet
@@ -55,8 +89,8 @@ isEvaluated sheet =
             )
             True
 
-notEvaluated : Spreadsheet -> Int
-notEvaluated sheet =
+countNotEvaluated : Spreadsheet -> Int
+countNotEvaluated sheet =
     Array2D.map Cell.isValue sheet
         |> Array2D.toFlatArrayRowMajor
         |> Array.filter (\b -> not b)
@@ -75,28 +109,22 @@ type alias Col =
 
 
 {-| -}
-type alias SpreadsheetColumn =
-    List Cell
-
-
-{-| -}
 type alias Spreadsheet =
     Array2D Cell
 
-
+emptySpreadsheet : Array2D Cell
+emptySpreadsheet = Array2D.repeat 1 1 (Right (String "nothing"))
 {-| -}
 type alias TextSpreadsheet =
     Array2D String
 
 
-type alias TextColumn =
-    List String
 
 
 
 -- FUNCTIONS
 
-
+{-| -}
 getCell : Int -> Int -> Spreadsheet -> Maybe Cell
 getCell i j sheet =
     Array2D.get i j sheet
@@ -105,9 +133,9 @@ getCell i j sheet =
 
 -- PARSE
 
-
-spreadSheetFromListList : List (List String) -> Maybe Spreadsheet
-spreadSheetFromListList lists =
+{-| -}
+readFromList : List (List String) -> Maybe Spreadsheet
+readFromList lists =
     textSpreadSheetFromListList lists |> Maybe.map (Array2D.map CellParser.parse)
 
 
@@ -136,7 +164,7 @@ evalCell i j cell sheet =
         Left formula ->
             evalFormula i j formula sheet
 
-
+{-| -}
 evalFormula : Int -> Int -> Formula -> Spreadsheet -> Spreadsheet
 evalFormula i j formula sheet =
     case formula of

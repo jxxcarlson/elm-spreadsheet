@@ -83,7 +83,21 @@ trailingOperandParser2 =
     ParserUtil.second (XString.oneCharWithPredicate (\c -> c == ':')) indexParser
 
 
-order : String -> Int
+
+inverseOrder : Int -> String
+inverseOrder k = 
+ if k < 26 then
+   Char.fromCode (k + 65) |> String.fromChar
+ else 
+    let
+        r = modBy 26 k
+        c = Char.fromCode (r + 65) |> String.fromChar
+        q = (k // 26) - 1
+    in
+    inverseOrder q ++ c
+    
+   
+ 
 order str =
     let
         indices =
@@ -141,7 +155,7 @@ opParser =
 
 valueParser : Parser Value
 valueParser =
-    Parser.oneOf [ Parser.backtrackable (U.integer |> Parser.map Integer), U.float |> Parser.map Real ]
+    Parser.oneOf [ Parser.backtrackable (U.integer |> Parser.map toFloat |> Parser.map Real), U.float |> Parser.map Real ]
 
 
 string : Parser String

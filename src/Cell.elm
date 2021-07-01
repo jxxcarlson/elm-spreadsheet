@@ -103,7 +103,7 @@ mapReal f cell =
 stringFromOperands operands =
     case operands of
         Pair { left, right } ->
-            stringFromIndex left ++ " " ++ stringFromIndex right
+            stringFromIndex left ++ "," ++ stringFromIndex right
 
         Range { left, right } ->
             stringFromIndex left ++ ":" ++ stringFromIndex right
@@ -111,7 +111,7 @@ stringFromOperands operands =
 
 stringFromIndex : Index -> String
 stringFromIndex { row, col } =
-    "{ row = " ++ String.fromInt row ++ ", col = " ++ String.fromInt col ++ "}"
+    intToRowCode row ++ (String.trim <| String.fromInt (col + 1))
 
 
 {-| -}
@@ -173,7 +173,7 @@ render : Cell -> String
 render cell =
     case cell of
         Left (Formula op operands) ->
-            "row " ++ stringFromOp op ++ " " ++ stringFromOperands operands
+            stringFromOp op ++ " " ++ stringFromOperands operands
 
         Right (Integer k) ->
             String.fromInt k
@@ -190,6 +190,18 @@ render cell =
         Right (String s) ->
             s
 
+intToRowCode : Int -> String
+intToRowCode k = 
+ if k < 26 then
+   Char.fromCode (k + 65) |> String.fromChar
+ else 
+    let
+        r = modBy 26 k
+        c = Char.fromCode (r + 65) |> String.fromChar
+        q = (k // 26) - 1
+    in
+    intToRowCode q ++ c
+  
 
 stringOfBoolean : Bool -> String
 stringOfBoolean b =
