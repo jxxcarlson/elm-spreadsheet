@@ -20,6 +20,52 @@ import UtilityParser as U
 import XString
 
 
+type alias Index =
+    { row : Int, col : Int }
+
+
+type alias RawOperands =
+    { left : Index, right : Index }
+
+
+type Operands
+    = Pair RawOperands
+    | Range RawOperands
+
+
+parseIndex : Parser Index
+parseIndex =
+    Parser.succeed (\i j -> { row = i - 1, col = j - 1 })
+        |= (XString.withPredicates Char.isAlpha Char.isAlpha |> Parser.map order)
+        |= Parser.int
+
+
+order : String -> Int
+order str =
+    let
+        indices =
+            str
+                |> String.toLower
+                |> String.toList
+                |> List.map (\c -> Char.toCode c - 96)
+                |> List.reverse
+    in
+    order_ indices
+
+
+order_ : List Int -> Int
+order_ indices =
+    case indices of
+        [] ->
+            0
+
+        first :: [] ->
+            first
+
+        first :: rest ->
+            first + 26 * order_ rest
+
+
 stringFromOp : Op -> String
 stringFromOp op =
     case op of

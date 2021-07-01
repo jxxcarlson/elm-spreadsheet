@@ -3,9 +3,11 @@ module SpreadsheetTests exposing (..)
 import Array2D
 import Cell exposing (..)
 import CellParser1
+import CellParser2
 import Either exposing (Either(..))
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
+import Parser
 import Spreadsheet exposing (..)
 import Test exposing (..)
 
@@ -49,6 +51,12 @@ suite =
             , test "Cell.parse on whole number" <|
                 \_ ->
                     CellParser1.parse "3" |> Expect.equal (Right (Integer 3))
+            , test "Cell2.parseIndex" <|
+                \_ ->
+                    Parser.run CellParser2.parseIndex "z2" |> Expect.equal (Ok { col = 1, row = 25 })
+            , test "Cell2.parseIndex,  2 digits" <|
+                \_ ->
+                    Parser.run CellParser2.parseIndex "aa2" |> Expect.equal (Ok { col = 1, row = 26 })
             ]
         ]
 
