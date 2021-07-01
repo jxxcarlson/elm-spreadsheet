@@ -28,6 +28,18 @@ suite =
                         |> Maybe.andThen (getCell 3 1)
                         |> Expect.equal
                             (Just (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 2 } }))))
+            , test "test evalFormula" <|
+                let
+                    formula =
+                        Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 1, row = 1 } })
+                in
+                \_ ->
+                    ss1
+                        |> spreadSheetFromListList
+                        |> Maybe.map (evalFormula 3 1 formula)
+                        |> Maybe.andThen (getCell 3 1)
+                        |> Expect.equal
+                            (Just (Right (Real 2.5)))
 
             --, test "Column formula: is addRange computation correct?" <|
             --    \_ ->

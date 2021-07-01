@@ -2,11 +2,12 @@ module Spreadsheet exposing
     ( Spreadsheet, TextSpreadsheet
     ,  array2DfromListList
       , columnWithDefault
+      , evalFormula
+        -- , parse, eval, evalText, render
       , getCell
       , rowWithDefault
       , spreadSheetFromListList
       , textSpreadSheetFromListList
-        -- , parse, eval, evalText, render
 
     )
 
@@ -20,7 +21,7 @@ module Spreadsheet exposing
 
 import Array exposing (Array)
 import Array2D exposing (Array2D)
-import Cell exposing (Cell, Formula(..), Op(..), Value(..))
+import Cell exposing (Cell, Formula(..), Op(..), Operands(..), Value(..))
 import CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
@@ -86,6 +87,55 @@ array2DfromListList lists =
         |> Array2D.fromRows
 
 
+evalFormula : Int -> Int -> Formula -> Spreadsheet -> Spreadsheet
+evalFormula i j formula sheet =
+    case formula of
+        Formula op (Pair { left, right }) ->
+            case op of
+                Add ->
+                    case cellOp (+) left.row left.col right.row right.col sheet of
+                        Nothing ->
+                            sheet
+
+                        Just val ->
+                            putCell i j (Right (Real val)) sheet
+
+                Mul ->
+                    case cellOp (*) left.row left.col right.row right.col sheet of
+                        Nothing ->
+                            sheet
+
+                        Just val ->
+                            putCell i j (Right (Real val)) sheet
+
+                Sub ->
+                    case cellOp (-) left.row left.col right.row right.col sheet of
+                        Nothing ->
+                            sheet
+
+                        Just val ->
+                            putCell i j (Right (Real val)) sheet
+
+                Div ->
+                    case cellOp (/) left.row left.col right.row right.col sheet of
+                        Nothing ->
+                            sheet
+
+                        Just val ->
+                            putCell i j (Right (Real val)) sheet
+
+                NoOp ->
+                    sheet
+
+        _ ->
+            sheet
+
+
+cellOp : (Float -> Float -> Float) -> Int -> Int -> Int -> Int -> Spreadsheet -> Maybe Float
+cellOp op i1 j1 i2 j2 sheet =
+    Maybe.map2 op (getCell i1 j1 sheet |> Maybe.andThen Cell.realValue) (getCell i2 j2 sheet |> Maybe.andThen Cell.realValue)
+
+
 
 --
 --{-| -}
@@ -145,13 +195,6 @@ array2DfromListList lists =
 --                AddRange ->
 --                    putCell i j (sumColumn j r1 r2 sheet) sheet
 --
---                Add ->
---                    case cellOp (+) r1 j r2 j sheet of
---                        Nothing ->
---                            sheet
---
---                        Just val ->
---                            putCell i j (Right (Real val)) sheet
 --
 --                _ ->
 --                    sheet
@@ -159,10 +202,6 @@ array2DfromListList lists =
 --        _ ->
 --            sheet
 --
---
---cellOp : (Float -> Float -> Float) -> Int -> Int -> Int -> Int -> Spreadsheet -> Maybe Float
---cellOp op i1 j1 i2 j2 sheet =
---    Maybe.map2 op (getCell i1 j1 sheet |> Maybe.andThen Cell.realValue) (getCell i2 j2 sheet |> Maybe.andThen Cell.realValue)
 --
 --
 --sumColumn : Col -> Row -> Row -> Spreadsheet -> Cell
