@@ -1,7 +1,7 @@
 module Cell exposing
     ( Cell, Formula(..), Value(..), Row, Col
     , render
-    , Op(..), realValue, stringFromOp
+    , Index, Op(..), Operands(..), RawOperands, opFromString, realValue, stringFromOp
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -37,16 +37,44 @@ type alias Row =
     Int
 
 
+type alias Index =
+    { row : Int, col : Int }
+
+
+type alias RawOperands =
+    { left : Index, right : Index }
+
+
+type Operands
+    = Pair RawOperands
+    | Range RawOperands
+
+
+stringFromOperands operands =
+    case operands of
+        Pair { left, right } ->
+            stringFromIndex left ++ " " ++ stringFromIndex right
+
+        Range { left, right } ->
+            stringFromIndex left ++ ":" ++ stringFromIndex right
+
+
+stringFromIndex : Index -> String
+stringFromIndex { row, col } =
+    "{ row = " ++ String.fromInt row ++ ", col = " ++ String.fromInt col ++ "}"
+
+
 {-| -}
 type Formula
-    = RowOp Op Col Col
-    | ColOp Op Row Row
+    = Formula Op Operands
 
 
 type Op
     = NoOp
     | Add
-    | AddRange
+    | Sub
+    | Mul
+    | Div
 
 
 {-| -}
@@ -75,10 +103,16 @@ stringFromOp : Op -> String
 stringFromOp op =
     case op of
         Add ->
-            "Add"
+            "add"
 
-        AddRange ->
-            "AddRange"
+        Sub ->
+            "sub"
+
+        Mul ->
+            "mul"
+
+        Div ->
+            "div"
 
         NoOp ->
             "NoOp"
@@ -90,8 +124,14 @@ opFromString str =
         "add" ->
             Add
 
-        "addRange" ->
-            AddRange
+        "sub" ->
+            Sub
+
+        "mul" ->
+            Mul
+
+        "div" ->
+            Div
 
         _ ->
             NoOp
@@ -101,11 +141,8 @@ opFromString str =
 render : Cell -> String
 render cell =
     case cell of
-        Left (RowOp op i j) ->
-            "row " ++ stringFromOp op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
-
-        Left (ColOp op i j) ->
-            "col " ++ stringFromOp op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
+        Left (Formula op operands) ->
+            "row " ++ stringFromOp op ++ " " ++ stringFromOperands operands
 
         Right (Integer k) ->
             String.fromInt k
