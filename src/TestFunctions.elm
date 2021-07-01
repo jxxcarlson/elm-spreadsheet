@@ -1,4 +1,4 @@
-module Test exposing (..)
+module TestFunctions exposing (..)
 
 import Solve
 import TestData

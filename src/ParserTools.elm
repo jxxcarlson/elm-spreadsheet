@@ -120,7 +120,7 @@ between p q r =
 
 {-| textPS = "text prefixText stopCharacters": Get the longest string
 whose first character satisfies the prefixTest and whose remaining
-characters are not in the list of stop characters. Example:
+characters are not in the list of stop characters. SpreadsheetTests:
 
     line =
         textPS (\c -> Char.isAlpha) [ '\n' ]
@@ -140,7 +140,7 @@ textPS prefixTest stopChars =
 
 {-| textPS = "text prefixText stopCharacters": Get the longest string
 whose first character satisfies the prefixTest and whose remaining
-characters are not in the list of stop characters. Example:
+characters are not in the list of stop characters. SpreadsheetTests:
 
     line =
         textPS (\c -> Char.isAlpha) [ '\n' ]

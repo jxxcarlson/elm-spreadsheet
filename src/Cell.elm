@@ -1,6 +1,7 @@
 module Cell exposing
-    ( Cell, Formula(..), Value(..), Row, Col, Location
+    ( Cell, Formula(..), Value(..), Row, Col
     , parse, render
+    , Op(..), realValue, stringFromOp
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -19,7 +20,6 @@ module Cell exposing
 
 import Either exposing (Either(..))
 import Parser exposing ((|.), (|=), Parser)
-import ParserTools as T
 import Utility
 import UtilityParser as U
 import XString
@@ -39,13 +39,56 @@ type alias Col =
 type alias Row =
     Int
 
-type alias Location = (Int, Int)
-
 
 {-| -}
 type Formula
-    = RowOp String Col Col
-    | ColOp String Row Row
+    = RowOp Op Col Col
+    | ColOp Op Row Row
+
+
+type Op
+    = NoOp
+    | Add
+    | AddRange
+
+
+realValue : Cell -> Maybe Float
+realValue cell =
+    case cell of
+        Left _ ->
+            Nothing
+
+        Right (Real x) ->
+            Just x
+
+        _ ->
+            Nothing
+
+
+stringFromOp : Op -> String
+stringFromOp op =
+    case op of
+        Add ->
+            "Add"
+
+        AddRange ->
+            "AddRange"
+
+        NoOp ->
+            "NoOp"
+
+
+opFromString : String -> Op
+opFromString str =
+    case str of
+        "add" ->
+            Add
+
+        "addRange" ->
+            AddRange
+
+        _ ->
+            NoOp
 
 
 {-| -}
@@ -73,10 +116,10 @@ render : Cell -> String
 render cell =
     case cell of
         Left (RowOp op i j) ->
-            "row " ++ op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
+            "row " ++ stringFromOp op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
 
         Left (ColOp op i j) ->
-            "col " ++ op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
+            "col " ++ stringFromOp op ++ " " ++ String.fromInt (i + 1) ++ " " ++ String.fromInt (j + 1)
 
         Right (Integer k) ->
             String.fromInt k
@@ -117,7 +160,7 @@ rowOpParser =
     Parser.succeed RowOp
         |. Parser.symbol "row"
         |. Parser.spaces
-        |= string
+        |= (string |> Parser.map opFromString)
         -- XString.oneCharWithPredicate (\c -> c == '+' || c == '*' || c == '-' || c == '/')
         |. Parser.spaces
         |= (Parser.int |> Parser.map (\x -> x - 1))
@@ -130,7 +173,7 @@ colOpParser =
     Parser.succeed ColOp
         |. Parser.symbol "col"
         |. Parser.spaces
-        |= string
+        |= (string |> Parser.map opFromString)
         |. Parser.spaces
         |= (Parser.int |> Parser.map (\x -> x - 1))
         |. Parser.spaces

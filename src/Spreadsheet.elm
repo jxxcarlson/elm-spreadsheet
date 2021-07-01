@@ -1,6 +1,7 @@
 module Spreadsheet exposing
-    ( Spreadsheet, TextSpreadsheet, getCell, rowWithDefault, columnWithDefault
-    , parse, eval, evalText, render, array2DfromListList, textSpreadSheetFromListList, spreadSheetFromListList
+    ( Spreadsheet, TextSpreadsheet
+    , parse, eval, evalText, render
+    , array2DfromListList, columnWithDefault, getCell, rowWithDefault, spreadSheetFromListList, textSpreadSheetFromListList
     )
 
 {-| This module provides functions to parse, evaluate, and render spreadsheets.
@@ -11,13 +12,14 @@ module Spreadsheet exposing
 
 -}
 
-import Cell exposing (Cell, Formula(..), Value(..), Location)
+import Array exposing (Array)
+import Array2D exposing (Array2D)
+import Cell exposing (Cell, Formula(..), Op(..), Value(..))
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import List.Extra
 import Maybe.Extra
-import Array2D exposing(Array2D)
-import Array exposing(Array)
+
 
 
 -- TYPES
@@ -43,50 +45,54 @@ type alias Spreadsheet =
 
 {-| -}
 type alias TextSpreadsheet =
-   Array2D String
+    Array2D String
 
 
 type alias TextColumn =
     List String
 
+
+
 -- FUNCTIONS
+
 
 getCell : Int -> Int -> Spreadsheet -> Maybe Cell
 getCell i j sheet =
     Array2D.get i j sheet
 
 
+
 -- PARSE
 
 
-spreadSheetFromListList : (List (List String)) -> Maybe Spreadsheet
+spreadSheetFromListList : List (List String) -> Maybe Spreadsheet
 spreadSheetFromListList lists =
-   textSpreadSheetFromListList lists |> Maybe.map parse
+    textSpreadSheetFromListList lists |> Maybe.map parse
 
-textSpreadSheetFromListList : (List (List String)) -> Maybe TextSpreadsheet
+
+textSpreadSheetFromListList : List (List String) -> Maybe TextSpreadsheet
 textSpreadSheetFromListList lists =
-   array2DfromListList lists
+    array2DfromListList lists
 
 
 array2DfromListList : List (List a) -> Maybe (Array2D a)
 array2DfromListList lists =
-    (Array.fromList (List.map Array.fromList lists))
-      |> Array2D.fromRows
+    Array.fromList (List.map Array.fromList lists)
+        |> Array2D.fromRows
 
 
 {-| -}
 parse : TextSpreadsheet -> Spreadsheet
-parse sheet  =
+parse sheet =
     Array2D.map Cell.parse sheet
+
+
 
 --
 --parseColumn : List String -> Array Cell
 --parseColumn cells =
 --    List.map Cell.parse cells
 --      |> Array.fromList
-
-
-
 -- RENDER
 
 
@@ -97,12 +103,10 @@ render sheet =
     Array2D.map Cell.render sheet
 
 
+
 --renderColumn : Array Cell -> List String
 --renderColumn cells =
 --    List.map Cell.render cells
-
-
-
 -- EVAL
 
 
@@ -129,16 +133,29 @@ applyColOp_ i j sheet =
         Nothing ->
             sheet
 
-        Just (Left (ColOp opSymbol ii jj)) ->
+        Just (Left (ColOp opSymbol r1 r2)) ->
             case opSymbol of
-                "sum" ->
-                    putCell i j (sumColumn j ii jj sheet) sheet
+                AddRange ->
+                    putCell i j (sumColumn j r1 r2 sheet) sheet
+
+                Add ->
+                    case cellOp (+) r1 j r2 j sheet of
+                        Nothing ->
+                            sheet
+
+                        Just val ->
+                            putCell i j (Right (Real val)) sheet
 
                 _ ->
                     sheet
 
         _ ->
             sheet
+
+
+cellOp : (Float -> Float -> Float) -> Int -> Int -> Int -> Int -> Spreadsheet -> Maybe Float
+cellOp op i1 j1 i2 j2 sheet =
+    Maybe.map2 op (getCell i1 j1 sheet |> Maybe.andThen Cell.realValue) (getCell i2 j2 sheet |> Maybe.andThen Cell.realValue)
 
 
 sumColumn : Col -> Row -> Row -> Spreadsheet -> Cell
@@ -187,7 +204,7 @@ applyRowOp_ row_ col sheet =
             sheet
 
         Just (Left (RowOp opSymbol i j)) ->
-            case ( Dict.get opSymbol opRealDict, getCell row_ i sheet, getCell row_ j sheet ) of
+            case ( Dict.get (Cell.stringFromOp opSymbol) opRealDict, getCell row_ i sheet, getCell row_ j sheet ) of
                 ( Just op, Just (Right (Real x)), Just (Right (Real y)) ) ->
                     putCell row_ col (Right (Real (op x y))) sheet
 
@@ -212,17 +229,13 @@ evalText text =
 -- CELL
 
 
-
 putCell : Row -> Col -> Cell -> Spreadsheet -> Spreadsheet
 putCell row_ col cell sheet =
     Array2D.set row_ col cell sheet
 
 
 
-
 -- COLUMN
-
-
 --getColumn : Col -> Spreadsheet -> Maybe SpreadsheetColumn
 --getColumn col sheet =
 --    List.Extra.getAt col sheet
@@ -230,7 +243,7 @@ putCell row_ col cell sheet =
 
 height : Spreadsheet -> Int
 height sheet =
-   Array2D.rows sheet
+    Array2D.rows sheet
 
 
 width : Spreadsheet -> Int
@@ -250,33 +263,36 @@ opRealDict =
         , ( "*", (*) )
         , ( "/", (/) )
         ]
+
+
+
 -- HELPERS
-
-
 -- ADDED by jxxcarlson
 
 
 row : Int -> Array2D a -> Array (Maybe a)
 row i array =
-    List.foldl (\j acc -> (Array2D.get i j array)::acc ) [] (List.range 0 ((Array2D.columns array) - 1))
-    |> List.reverse
-    |> Array.fromList
+    List.foldl (\j acc -> Array2D.get i j array :: acc) [] (List.range 0 (Array2D.columns array - 1))
+        |> List.reverse
+        |> Array.fromList
+
 
 rowWithDefault : a -> Int -> Array2D a -> Array a
 rowWithDefault default i array =
-    List.foldl (\j acc -> (Array2D.get i j array |> Maybe.withDefault default)::acc ) [] (List.range 0 ((Array2D.columns array) - 1))
-    |> List.reverse
-    |> Array.fromList
+    List.foldl (\j acc -> (Array2D.get i j array |> Maybe.withDefault default) :: acc) [] (List.range 0 (Array2D.columns array - 1))
+        |> List.reverse
+        |> Array.fromList
 
 
 column : Int -> Array2D a -> Array (Maybe a)
 column j array =
-    List.foldl (\i acc -> (Array2D.get i j array)::acc ) [] (List.range 0 ((Array2D.rows array) - 1))
-    |> List.reverse
-    |> Array.fromList
+    List.foldl (\i acc -> Array2D.get i j array :: acc) [] (List.range 0 (Array2D.rows array - 1))
+        |> List.reverse
+        |> Array.fromList
+
 
 columnWithDefault : a -> Int -> Array2D a -> Array a
 columnWithDefault default j array =
-    List.foldl (\i acc -> (Array2D.get i j array |> Maybe.withDefault default)::acc ) [] (List.range 0 ((Array2D.rows array) - 1))
-    |> List.reverse
-    |> Array.fromList
+    List.foldl (\i acc -> (Array2D.get i j array |> Maybe.withDefault default) :: acc) [] (List.range 0 (Array2D.rows array - 1))
+        |> List.reverse
+        |> Array.fromList
