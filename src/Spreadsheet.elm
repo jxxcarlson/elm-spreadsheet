@@ -7,6 +7,7 @@ module Spreadsheet exposing
       , evalFormula
       , evalSheet
       , getCell
+      , isEvaluated
       , rowWithDefault
       , spreadSheetFromListList
       , textSpreadSheetFromListList
@@ -27,6 +28,21 @@ import Cell exposing (Cell, Formula(..), Op(..), Operands(..), Value(..))
 import CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+
+
+isEvaluated : Spreadsheet -> Bool
+isEvaluated sheet =
+    Array2D.map Cell.isValue sheet
+        |> Array2D.toFlatArrayRowMajor
+        |> Array.foldl
+            (\b acc ->
+                if b == False then
+                    b
+
+                else
+                    acc
+            )
+            True
 
 
 

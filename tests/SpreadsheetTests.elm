@@ -102,6 +102,21 @@ suite =
                         |> Maybe.andThen (getCell 1 1)
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 92.0)))
+            , test "evalSheet (7): is the spreadsheet evaluated?" <|
+                \_ ->
+                    ss2
+                        |> spreadSheetFromListList
+                        |> Maybe.map evalSheet
+                        |> Maybe.map evalSheet
+                        |> Maybe.map Spreadsheet.isEvaluated
+                        |> Expect.equal (Just True)
+            , test "evalSheet (8): is the spreadsheet evaluated?" <|
+                \_ ->
+                    ss2
+                        |> spreadSheetFromListList
+                        |> Maybe.map evalSheet
+                        |> Maybe.map Spreadsheet.isEvaluated
+                        |> Expect.equal (Just False)
 
             --, test "Column formula: is addRange computation correct?" <|
             --    \_ ->
