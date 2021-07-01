@@ -11,7 +11,7 @@ module Spreadsheet exposing
       , rowWithDefault
       , spreadSheetFromListList
       , textSpreadSheetFromListList
-        -- , parse, eval, evalText, render
+        -- , parse, evalText, render
 
     )
 
@@ -29,6 +29,7 @@ import Cell exposing (Cell, Formula(..), Op(..), Operands(..), Value(..))
 import CellParser
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import Maybe.Extra
 
 
 eval : Spreadsheet -> Spreadsheet
@@ -178,8 +179,34 @@ evalFormula i j formula sheet =
                 NoOp ->
                     sheet
 
-        _ ->
-            sheet
+        Formula op (Range { left, right }) ->
+            case op of
+                Add ->
+                    if left.row == right.row then
+                        let
+                            val =
+                                rowSlice (Right Undefined) left.row left.col right.col sheet
+                                    |> List.map Cell.realValue
+                                    |> Maybe.Extra.values
+                                    |> List.sum
+                        in
+                        putCell i j (Right (Real val)) sheet
+
+                    else if left.col == right.col then
+                        let
+                            val =
+                                columnSlice (Right Undefined) left.col left.row right.row sheet
+                                    |> List.map Cell.realValue
+                                    |> Maybe.Extra.values
+                                    |> List.sum
+                        in
+                        putCell i j (Right (Real val)) sheet
+
+                    else
+                        sheet
+
+                _ ->
+                    sheet
 
 
 cellOp : (Float -> Float -> Float) -> Int -> Int -> Int -> Int -> Spreadsheet -> Maybe Float
@@ -187,141 +214,17 @@ cellOp op i1 j1 i2 j2 sheet =
     Maybe.map2 op (getCell i1 j1 sheet |> Maybe.andThen Cell.realValue) (getCell i2 j2 sheet |> Maybe.andThen Cell.realValue)
 
 
+columnSlice : a -> Int -> Int -> Int -> Array2D a -> List a
+columnSlice default c r1 r2 array =
+    List.foldl (\r list -> (Array2D.get r c array |> Maybe.withDefault default) :: list) [] (List.range r1 r2)
 
---
---{-| -}
---parse : TextSpreadsheet -> Spreadsheet
---parse sheet =
---    Array2D.map CellParser.parse sheet
---
---
---
-----
-----parseColumn : List String -> Array Cell
-----parseColumn cells =
-----    List.map Cell.parse cells
-----      |> Array.fromList
----- RENDER
---
---
---{-| Convert a List Cell to a List (List String) representation.
----}
---render : Spreadsheet -> TextSpreadsheet
---render sheet =
---    Array2D.map Cell.render sheet
---
---
---
-----renderColumn : Array Cell -> List String
-----renderColumn cells =
-----    List.map Cell.render cells
----- EVAL
---
---
---{-| Evaluate a Spreadsheet using the formula cells.
----}
---eval : Spreadsheet -> Spreadsheet
---eval sheet =
---    sheet |> evalRowOps |> evalColOps
---
---
---evalColOps : Spreadsheet -> Spreadsheet
---evalColOps sheet =
---    List.foldl (\i sheet_ -> applyColOp i sheet_) sheet (List.range 0 (width sheet - 1))
---
---
---applyColOp : Col -> Spreadsheet -> Spreadsheet
---applyColOp col sheet =
---    List.foldl (\i sheet_ -> applyColOp_ i col sheet_) sheet (List.range 0 (height sheet - 1))
---
---
---applyColOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
---applyColOp_ i j sheet =
---    case getCell i j sheet of
---        Nothing ->
---            sheet
---
---        Just (Left (ColOp opSymbol r1 r2)) ->
---            case opSymbol of
---                AddRange ->
---                    putCell i j (sumColumn j r1 r2 sheet) sheet
---
---
---                _ ->
---                    sheet
---
---        _ ->
---            sheet
---
---
---
---sumColumn : Col -> Row -> Row -> Spreadsheet -> Cell
---sumColumn col row1 row2 sheet =
---    columnWithDefault (Right Undefined) col sheet |> sumColumn_ row1 row2
---
---
---
----- sumColumn_ : Row -> Row -> SpreadsheetColumn -> Cell
---
---
---sumColumn_ : Int -> Int -> Array Cell -> Cell
---sumColumn_ row1 row2 cells =
---    Array.foldl (\cell acc -> addCell acc cell) 0 (Array.slice row1 (row2 + 1) cells) |> (\x -> Right (Real x))
---
---
---addCell : Float -> Cell -> Float
---addCell y cell =
---    case cell of
---        Right (Real x) ->
---            x + y
---
---        _ ->
---            0
---
---
---listSlice : Int -> Int -> List a -> List a
---listSlice a b list =
---    list |> List.take (b + 1) |> List.drop a
---
---
---evalRowOps : Spreadsheet -> Spreadsheet
---evalRowOps sheet =
---    List.foldl (\col sheet_ -> applyRowOp col sheet_) sheet (List.range 0 (width sheet - 1))
---
---
---applyRowOp : Col -> Spreadsheet -> Spreadsheet
---applyRowOp col sheet =
---    List.foldl (\i sheet_ -> applyRowOp_ i col sheet_) sheet (List.range 0 (height sheet - 1))
---
---
---applyRowOp_ : Row -> Col -> Spreadsheet -> Spreadsheet
---applyRowOp_ row_ col sheet =
---    case getCell row_ col sheet of
---        Nothing ->
---            sheet
---
---        Just (Left (RowOp opSymbol i j)) ->
---            case ( Dict.get (Cell.stringFromOp opSymbol) opRealDict, getCell row_ i sheet, getCell row_ j sheet ) of
---                ( Just op, Just (Right (Real x)), Just (Right (Real y)) ) ->
---                    putCell row_ col (Right (Real (op x y))) sheet
---
---                _ ->
---                    sheet
---
---        _ ->
---            sheet
---
---
---{-| Use the formulas in the cells to evaluate a TextSpreadsheet.
----}
---evalText : TextSpreadsheet -> TextSpreadsheet
---evalText text =
---    text
---        |> parse
---        |> eval
---        |> render
---
---
+
+rowSlice : a -> Int -> Int -> Int -> Array2D a -> List a
+rowSlice default r c1 c2 array =
+    List.foldl (\c list -> (Array2D.get r c array |> Maybe.withDefault default) :: list) [] (List.range c1 c2)
+
+
+
 -- CELL
 
 
@@ -363,7 +266,6 @@ opRealDict =
 
 
 -- HELPERS
--- ADDED by jxxcarlson
 
 
 row : Int -> Array2D a -> Array (Maybe a)

@@ -1,5 +1,5 @@
 module Cell exposing
-    ( Cell, Formula(..), Value(..), Row, Col
+    ( Cell, Formula(..), Value(..)
     , render
     , Index, Op(..), Operands(..), RawOperands, isValue, mapReal, opFromString, realValue, stringFromOp
     )
@@ -27,22 +27,52 @@ type alias Cell =
     Either Formula Value
 
 
-{-| -}
-type alias Col =
-    Int
+{-| Examples:
+
+    add A2,H10  -- add the two cells
+    add A2:H2   -- add the cells in column 2 from row A through row H
+    add B4:B9   -- add the cells in row B from column 2 through column 9
+    add A2:C9   -- add the cells in the region with corners A2 and C9
+
+    mul A1:H1 A3:H3 -- take the dot product of the column vectors A1:H1 and A3:H3
+    mul
+
+-}
+type Formula
+    = Formula Op Operands
 
 
-{-| -}
-type alias Row =
-    Int
 
+type Operands
+    = Pair RawOperands
+    | Range RawOperands
+
+type alias RawOperands =
+    { left : Index, right : Index }
 
 type alias Index =
     { row : Int, col : Int }
 
 
-type alias RawOperands =
-    { left : Index, right : Index }
+type Op
+    = NoOp
+    | Add
+    | Sub
+    | Mul
+    | Div
+
+
+{-| -}
+type Value
+    = Integer Int
+    | Real Float
+    | Boolean Bool
+    | String String
+    | Undefined
+
+
+
+
 
 
 isValue : Cell -> Bool
@@ -68,10 +98,6 @@ mapReal f cell =
             cell
 
 
-type Operands
-    = Pair RawOperands
-    | Range RawOperands
-
 
 stringFromOperands operands =
     case operands of
@@ -86,27 +112,6 @@ stringFromIndex : Index -> String
 stringFromIndex { row, col } =
     "{ row = " ++ String.fromInt row ++ ", col = " ++ String.fromInt col ++ "}"
 
-
-{-| -}
-type Formula
-    = Formula Op Operands
-
-
-type Op
-    = NoOp
-    | Add
-    | Sub
-    | Mul
-    | Div
-
-
-{-| -}
-type Value
-    = Integer Int
-    | Real Float
-    | Boolean Bool
-    | String String
-    | Undefined
 
 
 realValue : Cell -> Maybe Float
