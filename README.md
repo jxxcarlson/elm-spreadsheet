@@ -41,7 +41,7 @@ to compute the internal representation as `Array2D Cell`,  use
 to evaluate the formulas in a spreadsheet, and use 
 
 ```elm
-  print : Spreadsheet -> String
+   print : Spreadsheet -> String
 ``` 
 
 to render the result back into text:
