@@ -143,6 +143,13 @@ suite =
                         |> getCell 3 1
                         |> Maybe.map (Cell.mapReal (Utility.roundTo 1))
                         |> Expect.equal (Just (Right (Real 3.4)))
+            , test "Is the pipeline OK?" <|
+                \_ ->
+                    s8b
+                        |> read_
+                        |> eval
+                        |> print
+                        |> Expect.equal "100; 1.1; 110\n120; 1.4; 168\n140; 0.9; 126\n-; 3.4; 404"
             , test "Cell.parse on formula" <|
                 \_ ->
                     Parser.run CellParserExcel.cellParser "=sum(A2:Z2)" |> Expect.equal (Ok (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } }))))

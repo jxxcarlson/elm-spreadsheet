@@ -81,7 +81,9 @@ printAsList sheet =
         |> List.Extra.groupsOf cols
 
 
-{-| -}
+{-| The function parse: String -> Cell is a parser for cells, e.g.,
+CellParser.parse or CellParserExcel.parse
+-}
 read : (String -> Cell) -> String -> Spreadsheet
 read parse str =
     str
