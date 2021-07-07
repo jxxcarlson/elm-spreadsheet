@@ -82,14 +82,14 @@ printAsList sheet =
 
 
 {-| -}
-read : String -> Spreadsheet
-read str =
+read : (String -> Cell) -> String -> Spreadsheet
+read parse str =
     str
         |> String.lines
         |> List.map String.trim
         |> List.filter (\line -> line /= "")
         |> List.map (String.split ";" >> List.map String.trim)
-        |> readFromList
+        |> readFromList parse
 
 
 {-| Evaluate the formulas in a spreadsheet
@@ -181,10 +181,10 @@ getCell i j sheet =
 
 
 {-| -}
-readFromList : List (List String) -> Spreadsheet
-readFromList lists =
+readFromList : (String -> Cell) -> List (List String) -> Spreadsheet
+readFromList parse lists =
     textSpreadSheetFromListList lists
-        |> Maybe.map (Array2D.map CellParser.parse)
+        |> Maybe.map (Array2D.map parse)
         |> Maybe.withDefault emptySpreadsheet
 
 

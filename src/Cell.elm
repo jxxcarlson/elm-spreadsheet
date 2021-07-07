@@ -1,6 +1,7 @@
 module Cell exposing
     ( Cell, Formula(..), Value(..), Index, Op(..), Operands(..), RawOperands
     , render, isValue, mapReal, opFromString, realValue, stringFromOp
+    , opFromString2
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -155,6 +156,9 @@ opFromString str =
         "add" ->
             Add
 
+        "sum" ->
+            Add
+
         "sub" ->
             Sub
 
@@ -162,6 +166,25 @@ opFromString str =
             Mul
 
         "div" ->
+            Div
+
+        _ ->
+            NoOp
+
+
+opFromString2 : String -> Op
+opFromString2 str =
+    case str of
+        "+" ->
+            Add
+
+        "-" ->
+            Sub
+
+        "*" ->
+            Mul
+
+        "/" ->
             Div
 
         _ ->
@@ -190,18 +213,25 @@ render cell =
         Right (String s) ->
             s
 
+
 intToRowCode : Int -> String
-intToRowCode k = 
- if k < 26 then
-   Char.fromCode (k + 65) |> String.fromChar
- else 
-    let
-        r = modBy 26 k
-        c = Char.fromCode (r + 65) |> String.fromChar
-        q = (k // 26) - 1
-    in
-    intToRowCode q ++ c
-  
+intToRowCode k =
+    if k < 26 then
+        Char.fromCode (k + 65) |> String.fromChar
+
+    else
+        let
+            r =
+                modBy 26 k
+
+            c =
+                Char.fromCode (r + 65) |> String.fromChar
+
+            q =
+                (k // 26) - 1
+        in
+        intToRowCode q ++ c
+
 
 stringOfBoolean : Bool -> String
 stringOfBoolean b =

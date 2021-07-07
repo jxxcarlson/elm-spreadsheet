@@ -1,4 +1,4 @@
-module CellParser exposing (cellParser, indexParser, parse)
+module CellParserExcel exposing (..)
 
 {-
    ## Types
@@ -55,10 +55,58 @@ indexParser =
 
 formulaParser : Parser Formula
 formulaParser =
+    Parser.succeed identity
+        |. Parser.symbol "="
+        |= Parser.oneOf [ Parser.backtrackable formulaParser1, formulaParser2 ]
+
+
+formulaParser1 : Parser Formula
+formulaParser1 =
     Parser.succeed (\op operands -> Formula op operands)
         |= opParser
-        |. Parser.spaces
+        |. Parser.symbol "("
         |= operandsParser
+        |. Parser.symbol ")"
+
+
+formulaParser2 : Parser Formula
+formulaParser2 =
+    Parser.succeed (\left op right -> Formula op (Pair { left = left, right = right }))
+        |= indexParser
+        |. Parser.spaces
+        --|= (Parser.symbol "+" |> Parser.map (\s -> Add))
+        |= infixOpParser
+        |. Parser.spaces
+        |= indexParser
+
+
+infixOpParser : Parser Op
+infixOpParser =
+    Parser.oneOf [ plusParser, minusParser, productParser, divParser ]
+
+
+plusParser : Parser Op
+plusParser =
+    Parser.succeed Add
+        |. Parser.symbol "+"
+
+
+productParser : Parser Op
+productParser =
+    Parser.succeed Mul
+        |. Parser.symbol "*"
+
+
+minusParser : Parser Op
+minusParser =
+    Parser.succeed Sub
+        |. Parser.symbol "-"
+
+
+divParser : Parser Op
+divParser =
+    Parser.succeed Div
+        |. Parser.symbol "/"
 
 
 operandsParser : Parser Operands
@@ -154,7 +202,7 @@ cellParser =
 
 opParser : Parser Op
 opParser =
-    string |> Parser.map opFromString
+    string |> Parser.map Cell.opFromString
 
 
 valueParser : Parser Value

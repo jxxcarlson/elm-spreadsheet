@@ -22,7 +22,7 @@ are referred to in the same way as in Excel.
     -;   add A2:C2; add A3:C3
     """
 
-   
+
 The entry `mul A1,A2` means multiply the contents of cell A1 by the
 contents of cell A2. The entry `add A2:C2` means add the entries in column 2 between rows A and C.
 

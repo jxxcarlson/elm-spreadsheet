@@ -1,8 +1,8 @@
-module SpreadsheetTests exposing (..)
+module ExcelSpreadSheetTests exposing (..)
 
 import Array2D
 import Cell exposing (..)
-import CellParser
+import CellParserExcel
 import Either exposing (Either(..))
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -13,11 +13,11 @@ import Utility
 
 
 readFromList_ =
-    Spreadsheet.readFromList CellParser.parse
+    Spreadsheet.readFromList CellParserExcel.parse
 
 
 read_ =
-    Spreadsheet.read CellParser.parse
+    Spreadsheet.read CellParserExcel.parse
 
 
 suite : Test
@@ -145,19 +145,19 @@ suite =
                         |> Expect.equal (Just (Right (Real 3.4)))
             , test "Cell.parse on formula" <|
                 \_ ->
-                    Parser.run CellParser.cellParser "add A2:Z2" |> Expect.equal (Ok (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } }))))
+                    Parser.run CellParserExcel.cellParser "=sum(A2:Z2)" |> Expect.equal (Ok (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } }))))
             , test "Cell.parse on decimal number" <|
                 \_ ->
-                    Parser.run CellParser.cellParser "1.2" |> Expect.equal (Ok (Right (Real 1.2)))
+                    Parser.run CellParserExcel.cellParser "1.2" |> Expect.equal (Ok (Right (Real 1.2)))
             , test "Cell.parse on whole number" <|
                 \_ ->
-                    Parser.run CellParser.cellParser "3" |> Expect.equal (Ok (Right (Real 3)))
+                    Parser.run CellParserExcel.cellParser "3" |> Expect.equal (Ok (Right (Real 3)))
             , test "Cell2.parseIndex" <|
                 \_ ->
-                    Parser.run CellParser.indexParser "z2" |> Expect.equal (Ok { col = 1, row = 25 })
+                    Parser.run CellParserExcel.indexParser "z2" |> Expect.equal (Ok { col = 1, row = 25 })
             , test "Cell2.parseIndex,  2 digits" <|
                 \_ ->
-                    Parser.run CellParser.indexParser "aa2" |> Expect.equal (Ok { col = 1, row = 26 })
+                    Parser.run CellParserExcel.indexParser "aa2" |> Expect.equal (Ok { col = 1, row = 26 })
             ]
         ]
 
@@ -170,7 +170,7 @@ ss1 =
     [ [ "100.0", "1.1", "a" ]
     , [ "120.0", "1.4", "b" ]
     , [ "140.0", "0.9", "c" ]
-    , [ "-", "add A2:C2", "d" ]
+    , [ "-", "=sum(A2:C2)", "d" ]
     ]
 
 
@@ -178,7 +178,7 @@ s2 =
     [ [ "100.0", "1.7", "a" ]
     , [ "120.0", "1.4", "b" ]
     , [ "140.0", "0.9", "c" ]
-    , [ "-", "add A2,B2", "d" ]
+    , [ "-", "=A2+B2", "d" ]
     ]
 
 
@@ -186,23 +186,23 @@ s3 =
     [ [ "100.0", "1.7", "a" ]
     , [ "120.0", "1.4", "b" ]
     , [ "140.0", "0.9", "c" ]
-    , [ "-", "add A2,B2", "d" ]
+    , [ "-", "=A2+B2", "d" ]
     ]
 
 
 s4 =
     [ [ "100.0", "1.7", "a" ]
-    , [ "120.0", "sub C1,B1 ", "b" ]
+    , [ "120.0", "=C1-B1 ", "b" ]
     , [ "140.0", "0.9", "c" ]
-    , [ "-", "add A2,B2", "d" ]
+    , [ "-", "=A2+B2", "d" ]
     ]
 
 
 s5 =
     [ [ "1.0", "2.0", "3.0" ]
-    , [ "4.0", "add A2,D2", "5.0" ]
+    , [ "4.0", "=A2+D2", "5.0" ]
     , [ "6.0", "7.0", "8.0" ]
-    , [ "9.0", "mul D1,D3", "10.0" ]
+    , [ "9.0", "=D1*D3", "10.0" ]
     ]
 
 
@@ -210,56 +210,32 @@ s6 =
     [ [ "1.0", "2.0", "3.0" ]
     , [ "11.0", "5.0", "6.0" ]
     , [ "7.0", "8.0", "9.0" ]
-    , [ "1.0", "add A2:C2", "2.0" ]
+    , [ "1.0", "=sum(A2:C2)", "2.0" ]
     ]
-
-
-
-{-
-   column 2
-   slice: 2, 5, 8
-   result = 15
-
-          1         2
-      A "1.0",    "2.0",      "3.0"
-      B "11.0",   "5.0",       "6.0"
-      C "7.0",    "8.0",       "9.0"
-      D "1.0",   "add A2:C2", "2.0"
-
-
--}
 
 
 s7 =
     [ [ "1.0", "2.0", "3.0", "4.0" ]
     , [ "4.0", "5.0", "6.0", "7.0" ]
-    , [ "7.0", "8.0", "9.0", "add C1:C3" ]
+    , [ "7.0", "8.0", "9.0", "=sum(C1:C3)" ]
     , [ "1.0", "1", "2.0", "3.0" ]
     ]
 
 
 s8 =
-    [ [ "100.0", "1.1", "mul A1,A2" ]
-    , [ "120.0", "1.4", "mul B1,B2" ]
-    , [ "140.0", "0.9", "mul C1,C2" ]
-    , [ "-", "add A2:C2", "add A3:C3" ]
-    ]
-
-
-s8a =
-    [ [ "100.0", "1.1", "mul A1,A2" ]
-    , [ "120.0", "1.4", "mul B1,B2" ]
-    , [ "140.0", "0.9", "mul C1,C2" ]
-    , [ "-", "add A2:C2", "add A3:C3" ]
+    [ [ "100.0", "1.1", "=A1*A2" ]
+    , [ "120.0", "1.4", "=B1*B2" ]
+    , [ "140.0", "0.9", "=C1*C2" ]
+    , [ "-", "=sum(A2:C2)", "=sum(A3:C3)" ]
     ]
 
 
 s8b =
     """
 
-100; 1.1; mul A1,A2
-120; 1.4; mul B1,B2
-140; 0.9; mul C1,C2
--;   add A2:C2; add A3:C3
+100; 1.1; =A1*A2
+120; 1.4; =B1*B2
+140; 0.9; =C1*C2
+-;   =sum(A2:C2); =sum(A3:C3)
 
 """
