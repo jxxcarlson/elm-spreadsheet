@@ -1,4 +1,4 @@
-module CellParserExcel exposing (..)
+module CellParserExcel exposing (indexParser, parse)
 
 {-
    ## Types
@@ -8,7 +8,7 @@ module CellParserExcel exposing (..)
 
    ## Functions
 
-   @docs parse, render
+   @docs parse, indexParser
 
 -}
 

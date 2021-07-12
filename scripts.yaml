@@ -7,3 +7,7 @@ scripts:
     - git push
     - git br -d dev
     - git co -b dev
+
+  complexity: npx elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity
+
+  cloc: cloc --by-file src

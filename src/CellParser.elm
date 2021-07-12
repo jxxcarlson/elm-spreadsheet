@@ -1,4 +1,4 @@
-module CellParser exposing (cellParser, indexParser, parse)
+module CellParser exposing (indexParser, parse)
 
 {-
    ## Types
@@ -8,7 +8,7 @@ module CellParser exposing (cellParser, indexParser, parse)
 
    ## Functions
 
-   @docs parse, render
+   @docs parse, indexParser
 
 -}
 

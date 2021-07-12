@@ -152,13 +152,13 @@ suite =
                         |> Expect.equal "100; 1.1; 110\n120; 1.4; 168\n140; 0.9; 126\n-; 3.4; 404"
             , test "Cell.parse on formula" <|
                 \_ ->
-                    Parser.run CellParserExcel.cellParser "=sum(A2:Z2)" |> Expect.equal (Ok (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } }))))
+                    CellParserExcel.parse "=sum(A2:Z2)" |> Expect.equal (Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 1, row = 25 } })))
             , test "Cell.parse on decimal number" <|
                 \_ ->
-                    Parser.run CellParserExcel.cellParser "1.2" |> Expect.equal (Ok (Right (Real 1.2)))
+                    CellParserExcel.parse "1.2" |> Expect.equal (Right (Real 1.2))
             , test "Cell.parse on whole number" <|
                 \_ ->
-                    Parser.run CellParserExcel.cellParser "3" |> Expect.equal (Ok (Right (Real 3)))
+                    CellParserExcel.parse "3" |> Expect.equal (Right (Real 3))
             , test "Cell2.parseIndex" <|
                 \_ ->
                     Parser.run CellParserExcel.indexParser "z2" |> Expect.equal (Ok { col = 1, row = 25 })
