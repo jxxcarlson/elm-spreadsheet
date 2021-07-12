@@ -1,14 +1,8 @@
-module CellParser exposing (indexParser, parse)
+module CellParser exposing (parse, indexParser)
 
-{-
-   ## Types
+{-|
 
-   @docs Cell, Formula, Value, Row, Col
-
-
-   ## Functions
-
-   @docs parse, indexParser
+@docs parse, indexParser
 
 -}
 
@@ -127,7 +121,21 @@ order_ indices =
             first + 26 * order_ rest
 
 
-{-| -}
+{-|
+
+    > parse "3.1"
+    Right (Real 3.1)
+
+    > parse "add A2,B3"
+    Left (Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 2, row = 1 } }))
+
+    > parse "add A2:A8"
+    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 7, row = 0 } }))mula Add (Pair { left = { col = 1, row = 0 }, right = { col = 7, row = 0 } }))
+
+    > parse "add B3:B9"
+    Left (Formula Add (Range { left = { col = 2, row = 1 }, right = { col = 8, row = 1 } }))
+
+-}
 parse : String -> Cell
 parse input =
     case Parser.run cellParser input of

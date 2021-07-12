@@ -1,7 +1,6 @@
 module Cell exposing
     ( Cell, Formula(..), Value(..), Index, Op(..), Operands(..), RawOperands
-    , render, isValue, mapReal, opFromString, realValue, stringFromOp
-    , opFromString2
+    , render, isValue, mapReal, opFromString, opFromString2, realValue, stringFromOp
     )
 
 {-| Cell specifies the kind content of Spreadsheet cells may have.
@@ -14,7 +13,7 @@ module Cell exposing
 
 ## Functions
 
-@docs render, isValue, mapReal, opFromString, realValue, stringFromOp
+@docs render, isValue, mapReal, opFromString, opFromString2, realValue, stringFromOp
 
 -}
 
@@ -22,20 +21,28 @@ import Either exposing (Either(..))
 import Utility
 
 
-{-| -}
+{-| Parse the text representation to see the internal representation of a cell:
+
+    > parse "3.1"
+    Right (Real 3.1)
+
+-}
 type alias Cell =
     Either Formula Value
 
 
 {-| Examples:
 
-    add A2,H10  -- add the two cells
-    add A2:H2   -- add the cells in column 2 from row A through row H
-    add B4:B9   -- add the cells in row B from column 2 through column 9
-    add A2:C9   -- add the cells in the region with corners A2 and C9
+Parse the text representation to see the internal representation of a formula:
 
-    mul A1:H1 A3:H3 -- take the dot product of the column vectors A1:H1 and A3:H3
-    mul
+    > parse "=A2+B3"
+    Left (Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 2, row = 1 } }))
+
+    > parse "=sum(A2:A8)"
+    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 7, row = 0 } }))
+
+    > parse "=sum(B3:B9)"
+    Left (Formula Add (Range { left = { col = 2, row = 1 }, right = { col = 8, row = 1 } }))
 
 -}
 type Formula
@@ -172,6 +179,7 @@ opFromString str =
             NoOp
 
 
+{-| -}
 opFromString2 : String -> Op
 opFromString2 str =
     case str of

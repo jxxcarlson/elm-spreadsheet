@@ -1,14 +1,8 @@
-module CellParserExcel exposing (indexParser, parse)
+module CellParserExcel exposing (parse, indexParser)
 
-{-
-   ## Types
+{-|
 
-   @docs Cell, Formula, Value, Row, Col
-
-
-   ## Functions
-
-   @docs parse, indexParser
+@docs parse, indexParser
 
 -}
 
@@ -16,7 +10,6 @@ import Cell exposing (..)
 import Either exposing (Either(..))
 import Parser exposing ((|.), (|=), Parser)
 import ParserUtil
-import Utility
 import UtilityParser as U
 import XString
 
@@ -175,7 +168,21 @@ order_ indices =
             first + 26 * order_ rest
 
 
-{-| -}
+{-|
+
+    > parse "3.1"
+    Right (Real 3.1)
+
+    > parse "=A2+B7"
+    Left (Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 6, row = 1 } }))
+
+    > parse "=sum(A2:B7)"
+    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 6, row = 1 } }))
+
+    > parse "=sum(A2:M7)"
+    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 6, row = 12 } }))
+
+-}
 parse : String -> Cell
 parse input =
     case Parser.run cellParser input of
