@@ -36,12 +36,12 @@ transform { left, right } =
 {-|
 
     > run C.parseIndex "a2"
-    Ok { col = 1, row = 0 }
+    Ok { col = 0, row = 1 }
 
 -}
 indexParser : Parser Index
 indexParser =
-    Parser.succeed (\i j -> { row = i - 1, col = j - 1 })
+    Parser.succeed (\i j -> { col = i - 1, row = j - 1 })
         |= (XString.withPredicates Char.isAlpha Char.isAlpha |> Parser.map order)
         |= Parser.int
 
@@ -174,13 +174,13 @@ order_ indices =
     Right (Real 3.1)
 
     > parse "=A2+B7"
-    Left (Formula Add (Pair { left = { col = 1, row = 0 }, right = { col = 6, row = 1 } }))
+    Left (Formula Add (Pair { left = { col = 0, row = 1 }, right = { col = 1, row = 6 } }))
 
     > parse "=sum(A2:B7)"
-    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 6, row = 1 } }))
+    Left (Formula Add (Range { left = { col = 0, row = 1 }, right = { col = 1, row = 6 } }))
 
     > parse "=sum(A2:M7)"
-    Left (Formula Add (Range { left = { col = 1, row = 0 }, right = { col = 6, row = 12 } }))
+    Left (Formula Add (Range { left = { col = 0, row = 1 }, right = { col = 12, row = 6 } }))
 
 -}
 parse : String -> Cell
